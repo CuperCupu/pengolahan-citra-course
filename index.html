@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<head>
+<title>Image Processor</title>
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.2/Chart.bundle.min.js"></script>
+<script src="exif.js"></script>
+<style>
+@media screen and (min-width: 600px) and (orientation:portrait) {
+     
+    :root {
+        font-size: 32px;
+    }
+
+}
+.image-box {
+    margin: 1rem;
+    box-shadow: 0 3px 10px 0 #00000022;
+    background-color: rgba(225, 225, 225, 1);
+}
+</style>
+</head>
+<body onload="init();">
+    <video width=640 height=480 id="video" style="display: none;" controls autoplay></video>
+    <div class="container">
+        <div class="row d-flex justify-content-center mb-2 mt-2">
+            <h1>Image Processor</h1>
+        </div>
+        <div id="snapshot" class="row d-flex justify-content-center mb-2 mt-2">
+            <button class="btn btn-dark" id="webcam_start" onclick="startWebcam(); $('#webcam_start').addClass('d-none');">Start Webcam</button> 
+            <div id="webcam_control" class="d-none">
+                <button class="btn btn-dark mr-1" id="webcam_snapshot" onclick="snapshot();">Take Snapshot</button> 
+                <button class="btn btn-dark ml-1" id="webcam_stop" onclick="stopWebcam(); $('#webcam_start').removeClass('d-none'); $('#webcam_control').addClass('d-none');">Stop Webcam</button> 
+            </div>
+        </div>
+        <div class="row d-flex justify-content-center mb-2 mt-2">
+            <input id="image_file_input" oninput="load_image_file(this.files[0]);" type="file" accept="image/*" capture="camera" style="display: none;">
+            <input class="btn btn-dark" type="button" onclick="$('#image_file_input').click();" value="Take Picture">
+        </div>
+        <div class="row d-flex justify-content-center align-items-center">
+            <div class="col-lg-4 col-md-10 col-12 d-flex justify-content-center align-items-center">
+                <canvas class="image-box" id="image_canvas" width="480" height="360" style="max-width: 100%; height: auto;"></canvas>
+            </div>
+            <div class="col-lg-4 col-md-10 col-12 d-flex justify-content-center align-items-center">
+                <canvas class="image-box" id="image_canvas_2" width="480" height="360" style="max-width: 100%; height: auto;"></canvas>
+            </div>
+            <canvas class="col-lg-4 col-md-10 col-12" id="main_chart" width="400" height="400"></canvas>
+        </div>
+        <div id="controls" class="row justify-content-center d-none">
+            <div class="col-lg-4 col-md-6 col-12 justify-content-center mb-2 mt-2 ml-2 mr-2">
+                <div>Controls</div>
+                <button class="btn btn-dark mr-1 mt-1" onclick="resetPixels();">Reset</button> 
+                <button class="btn btn-dark mr-1 mt-1" onclick="setContrast(150)">Vivid</button>
+                <button class="btn btn-dark mr-1 mt-1" onclick="setContrast(255, 1.5)">High Contrast</button>
+            </div>
+            <div class="col-lg-4 col-md-6 col-12 justify-content-center mb-2 mt-2 ml-2 mr-2">
+                <div>Equalization</div>
+                <button class="btn btn-dark mr-1 mt-1" onclick="equalizePixels();">Equalize</button> 
+                <button class="btn btn-dark mr-1 mt-1" onclick="equalizePixels(1.25);">Brighter</button> 
+                <button class="btn btn-dark mr-1 mt-1" onclick="equalizePixels(0.75);">Darken</button> 
+                <button class="btn btn-dark mr-1 mt-1" onclick="equalizePixels(0.85, 0, 0.5);">Reduce Contrast</button> 
+                <button class="btn btn-dark mr-1 mt-1" onclick="equalizePixels(1.25, 0, 1.5);">Higher Contrast</button>
+            </div>
+            <div class="col-lg-4 col-md-6 col-12 justify-content-center mb-2 mt-2 ml-2 mr-2">
+                <div>Channels</div>
+                <button class="btn btn-dark mr-1 mt-1" onclick="setChannel(1, 0, 0)">Red</button>
+                <button class="btn btn-dark mr-1 mt-1" onclick="setChannel(0, 1, 0)">Green</button>
+                <button class="btn btn-dark mr-1 mt-1" onclick="setChannel(0, 0, 1)">Blue</button>
+                <button class="btn btn-dark mr-1 mt-1" onclick="setGrayscale();">Grayscale</button> 
+            </div>
+        </div>
+    </div>
+</body>
+<script>
+    navigator.getUserMedia = ( navigator.getUserMedia ||
+                             navigator.webkitGetUserMedia ||
+                             navigator.mozGetUserMedia ||
+                             navigator.msGetUserMedia);
+
+    var video;
+    var webcamStream;
+    var image;
+    var counts;
+    Math.clamp=function(a,b,c){return Math.max(b,Math.min(c,a));}
+
+    function startWebcam() {
+        if (navigator.getUserMedia) {
+           navigator.getUserMedia (
+                // constraints
+                {
+                    video: {width: {exact: 640}, height: {exact: 480}},
+                    audio: false
+                },
+
+                // successCallback
+                function(localMediaStream) {
+                    video = document.querySelector('video');
+                    video.srcObject = localMediaStream;
+                    webcamStream = localMediaStream;
+                    $("#webcam_control").removeClass("d-none");
+                },
+
+                // errorCallback
+                function(err) {
+                    console.log("The following error occured: " + err);
+                    if (err instanceof DOMException) {
+                        alert("Webcam permission denied.");
+                        $("#snapshot").removeClass("d-flex");
+                        $("#snapshot").addClass("d-none");
+                    }
+                }
+           );
+        } else {
+            console.log("getUserMedia not supported");
+            $("#snapshot").removeClass("d-flex");
+            $("#snapshot").addClass("d-none");
+        }
+    }
+
+    function stopWebcam() {
+        if (webcamStream) {
+            webcamStream.getTracks().forEach(function (track) { track.stop(); });
+        }
+    }
+    //---------------------
+    // TAKE A SNAPSHOT CODE
+    //---------------------
+    var canvas, ctx, canvas2, ctx2;
+
+    function init() {
+        // Get the canvas and obtain a context for
+        // drawing in it
+        canvas = document.getElementById("image_canvas");
+        ctx = canvas.getContext('2d');
+        canvas2 = document.getElementById("image_canvas_2");
+        ctx2 = canvas2.getContext('2d');
+        if ((location.protocol !== "https:") && (location.hostname != "localhost")) {
+            $("#snapshot").removeClass("d-flex");
+            $("#snapshot").addClass("d-none");
+        }
+    }
+
+    function snapshot() {
+        if (video) {
+            var width = video.width;
+            var height = video.height;
+            var orientation = screen.msOrientation || (screen.orientation || screen.mozOrientation || {}).type;
+            if ((orientation === "landscape-primary") ||(orientation === "landscape-secondary")) {
+            } else if ((orientation === "portrait-primary") || (orientation === "portrait-secondary") ){
+                width = video.height;
+                height = video.width;
+            }
+            canvas.width = width;
+            canvas.height = height;
+            canvas2.width = width;
+            canvas2.height = height;
+            ctx.drawImage(video, 0, 0);
+            image = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            ctx2.putImageData(image, 0, 0);
+            counts = countPixels(image);
+            resetColorChart(counts);
+            $("#controls").removeClass("d-none");
+            $("#controls").addClass("d-flex");
+        }
+    }
+
+    function load_image_file(img_url) {
+        try {
+            var img = new Image();
+            var reader = new FileReader();
+            img.setAttribute('crossOrigin', 'anonymous');
+
+            img.onload = function () {
+                var rotation = 0;
+                var orientation = 0;
+                EXIF.getData(this, function() {
+                    orientation = EXIF.getTag(this, "Orientation");
+                    if ((orientation == 1) || (orientation == 2)) {
+                        rotation = 0;
+                    } else if ((orientation == 3) || (orientation == 4)) {
+                        rotation = 180;
+                    } else if ((orientation == 5) || (orientation == 6)) {
+                        rotation = -90;
+                    } else if ((orientation == 7) || (orientation == 8)) {
+                        rotation = 90;
+                    }
+                });
+                var width = 0;
+                var height = 0;
+                if ((rotation == 0) || (rotation == 180) || (rotation == -180)) {
+                    canvas.height = canvas.width * (img.height / img.width);
+                    canvas2.height = canvas2.width * (img.height / img.width);
+                    width = canvas.height;
+                    height = canvas.width;
+                } else {
+                    canvas.height = canvas.width * (img.width / img.height);
+                    canvas2.height = canvas2.width * (img.width / img.height);
+                    width = canvas.width;
+                    height = canvas.height;
+                }
+                rotation = rotation / 180 * Math.PI;
+                ctx.save();
+                ctx.translate(canvas.width/2, canvas.height/2);
+                ctx.rotate(-rotation);
+                ctx.drawImage(this, -height/2, -width/2, height, width);
+                ctx.restore();
+                image = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                ctx2.putImageData(image, 0, 0);
+                counts = countPixels(image);
+                resetColorChart(counts);
+                $("#controls").removeClass("d-none");
+                $("#controls").addClass("d-flex");
+            };
+
+            reader.onload = function(event) {
+                the_url = event.target.result
+                img.src = the_url;
+            }
+            reader.readAsDataURL(img_url);
+        } catch(err) {
+            alert("loading :" + err.message);
+        }
+    }
+    
+    var ctx2 = document.getElementById("main_chart").getContext("2d");
+    var color_chart = new Chart(ctx2, {
+        type: 'line',
+        data: {
+            labels: Array.from(Array(256).keys()),
+            datasets: [{
+                radius: 0,
+                hitRadius: 3,
+                hoverRadius: 1,
+                label: 'Red',
+                data: [],
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.2)',
+                ],
+                borderColor: [
+                    'rgba(255,99,132,1)',
+                ],
+                borderWidth: 1
+            },{
+                radius: 0,
+                hitRadius: 3,
+                hoverRadius: 1,
+                label: 'Green',
+                data: [],
+                backgroundColor: [
+                    'rgba(99, 255, 132, 0.2)',
+                ],
+                borderColor: [
+                    'rgba(99, 255, 132, 1)',
+                ],
+                borderWidth: 1
+            },{
+                radius: 0,
+                hitRadius: 3,
+                hoverRadius: 1,
+                label: 'Blue',
+                data: [],
+                backgroundColor: [
+                    'rgba(99, 132, 255, 0.2)',
+                ],
+                borderColor: [
+                    'rgba(99, 132, 255, 1)',
+                ],
+                borderWidth: 1
+            },{
+                radius: 0,
+                hitRadius: 3,
+                hoverRadius: 1,
+                label: 'Grayscale',
+                data: [],
+                backgroundColor: [
+                    'rgba(128, 128, 128, 0.2)',
+                ],
+                borderColor: [
+                    'rgba(128, 128, 128, 1)',
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            scales: {
+                yAxes: [{
+                    ticks: {
+                        beginAtZero:true
+                    }
+                }]
+            }
+        }
+    });
+
+    function resetColorChart(frequency) {
+        for (var i = 0; i < 4; i++) {
+            color_chart.data.datasets[i].data = frequency[i];
+        }
+        color_chart.update();
+    }
+
+    function countPixels(img) {
+        try {
+            var frequency = [new Array(256), new Array(256), new Array(256), new Array(256)];
+            for (var i = 0; i < 4; i++) {
+                for (var j = 0; j < 256; j++) {
+                    frequency[i][j] = 0;
+                }
+            }
+            for (var i in img.data) {
+                var m = i % 4
+                if (m < 3) {
+                    // Red, Green, Blue.
+                    frequency[m][img.data[i]] += 1;
+                } else {
+                    // Grayscale.
+                    var val = Math.round((img.data[i - 1] + img.data[i - 2] + img.data[i - 3]) / 3)
+                    frequency[m][val] += 1;
+                }
+            }
+            return frequency;
+        } catch(err) {
+            alert("counting: " + err.message);
+        }
+    }
+
+    function equalizeChannel(channel, mult=1, offset=0, exp=1) {
+        var sum = 0;
+        var accum = new Array(256);
+        for (var i = 0; i < 256; i++) {
+            accum[i] = 0;
+            sum += channel[i];
+        }
+        var total = 0;
+        for (var i = Math.max(0, offset); i < Math.max(256, 256 + offset); i++) {
+            total += channel[i - offset];
+            var val = Math.pow(total / sum, exp) * mult * 255;
+            accum[i] = Math.round(Math.clamp(val, 0, 255));
+        }
+        for (var i = 256 + offset; i < 256; i++) {
+            accum[i] = 255;
+        }
+        return accum;
+    }
+
+    function equalizePixels(mult=1, offset=0, exp=1) {
+        try {
+            if (counts) {
+                var accum = new Array(4);
+                for (var i = 0; i < 4; i++) {
+                    accum[i] = equalizeChannel(counts[i], mult, offset, exp);
+                }
+                resetColorChart(accum);
+                newimg = ctx.createImageData(image.width, image.height);
+                for (var i = 0; i < newimg.data.length; i += 4) {
+                    newimg.data[i] = accum[0][image.data[i]];
+                    newimg.data[i + 1] = accum[1][image.data[i + 1]];
+                    newimg.data[i + 2] = accum[2][image.data[i + 2]];
+                    newimg.data[i + 3] = image.data[i + 3];
+                }
+                // image = newimg;
+                ctx2.putImageData(newimg, 0, 0);
+                return newimg;
+            } else {
+                alert("Please upload an image or take a picture with camera.")
+            }
+        } catch(err) {
+            alert("equalizing: " + err.message);
+        }
+    }
+
+    function resetPixels() {
+        try {
+            if (counts) {
+                for (var i = 0; i < 4; i++) {
+                    color_chart.data.datasets[i].data = counts[i];
+                }
+                color_chart.update();
+                // image = ctx.getImageData(0, 0, image.width, image.height);
+                ctx2.putImageData(image, 0, 0);
+            } else {
+                alert("Please upload an image or take a picture with camera.")
+            }
+        } catch(err) {
+            alert("resetting: " + err.message);
+        }
+    }
+
+    function setGrayscale() {
+        try {
+            if (counts) {
+                for (var i = 0; i < 4; i++) {
+                    color_chart.data.datasets[i].data = counts[3];
+                }
+                color_chart.update();
+                newimg = ctx.createImageData(image.width, image.height);
+                for (var i = 0; i < newimg.data.length; i += 4) {
+                    var val = Math.round((image.data[i] + image.data[i + 1] + image.data[i + 2]) / 3)
+                    newimg.data[i] = val;
+                    newimg.data[i + 1] = val;
+                    newimg.data[i + 2] = val;
+                    newimg.data[i + 3] = image.data[i + 3];
+                }
+                // image = newimg;
+                ctx2.putImageData(newimg, 0, 0);
+                return newimg;
+            } else {
+                alert("Please upload an image or take a picture with camera.")
+            }
+        } catch(err) {
+            alert("grayscaling: " + err.message);
+        }
+    }
+
+    function setChannel(r, g, b) {
+        try {
+            if (counts) {
+                newimg = ctx.createImageData(image.width, image.height);
+                for (var i = 0; i < newimg.data.length; i += 4) {
+                    newimg.data[i] = image.data[i] * r;
+                    newimg.data[i + 1] = image.data[i + 1] * g;
+                    newimg.data[i + 2] = image.data[i + 2] * b;
+                    newimg.data[i + 3] = image.data[i + 3];
+                }
+                // image = newimg;
+                ctx2.putImageData(newimg, 0, 0);
+                resetColorChart(countPixels(newimg));
+                return newimg;
+            } else {
+                alert("Please upload an image or take a picture with camera.")
+            }
+        } catch(err) {
+            alert("setchannel: " + err.message);
+        }
+    }
+
+    function setContrast(distance, exp=1) {
+        try {
+            if (counts) {
+                var sum = 0;
+                var total = 0;
+                for (var i = 0; i < 256; i++) {
+                    sum += counts[3][i];
+                    total += i * counts[3][i];
+                }
+                var center = Math.round(total / sum);
+                console.log(center);
+                contrastStretch(0, 255, center - distance / 2, center + distance / 2, exp);
+            }
+        } catch(err) {
+            alert("contrast stretch: " + err.message);
+        }
+    }
+
+    function contrastStretch(min, max, min2, max2, exp=1) {
+        try {
+            if (counts) {
+                var range = max - min;
+                var range2 = max2 - min2;
+                var ALU = new Array(4);
+                for (var j = 0; j < 4; j++) {
+                    ALU[j] = new Array(256);
+                    for (var i = 0; i < 256; i++) {
+                        ALU[j][i] = Math.round(Math.pow(Math.clamp((i - min2) / range2, 0, 1), exp) * range + min);
+                    }
+                }
+                newimg = ctx.createImageData(image.width, image.height);
+                for (var i = 0; i < newimg.data.length; i += 4) {
+                    newimg.data[i] = ALU[0][image.data[i]];
+                    newimg.data[i + 1] = ALU[1][image.data[i + 1]];
+                    newimg.data[i + 2] = ALU[2][image.data[i + 2]];
+                    newimg.data[i + 3] = ALU[3][image.data[i + 3]];
+                }
+                ctx2.putImageData(newimg, 0, 0);
+                resetColorChart(ALU);
+                return newimg;
+            }
+        } catch(err) {
+            alert("contrast stretch: " + err.message);
+        }
+    }
+    
+</script>
