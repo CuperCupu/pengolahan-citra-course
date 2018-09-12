@@ -1,12 +1,19 @@
 <!DOCTYPE html>
 <head>
-<title>Image Processor</title>
-<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
-<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.2/Chart.bundle.min.js"></script>
-<script src="exif.js"></script>
+    <meta charset="UTF-8">
+    <meta name="description" content="Image processing">
+    <meta name="keywords" content="Image Processing, Equalization, Contrast Stretching, Histogram Specification">
+    <meta name="author" content="Suhendi">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Processor</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.2/Chart.bundle.min.js"></script>
+    <script src="exif.js"></script>
+    <link rel="icon" href="/icon.png" type="image/png"/>
+    <link rel="shortcut icon" href="/icon.png" type="image/png"/>
 <style>
 /* @media screen and (min-width: 600px) and (orientation:portrait) {
      
@@ -58,8 +65,9 @@
                     <button class="col btn btn-dark ml-1 mr-1 mt-1" onclick="setChannel(0, 0, 1)">Blue</button>
                     <button class="col btn btn-dark ml-1 mr-1 mt-1" onclick="setGrayscale();">Grayscale</button> 
                     <div class="col-12">Specification</div>
-                    <button class="col btn btn-dark ml-1 mr-1 mt-1" onclick="saveSpecification()">Save Specification</button>
-                    <button class="col btn btn-dark ml-1 mr-1 mt-1" onclick="setHistSpecification()">Specification</button>
+                    <button class="col btn btn-dark ml-1 mr-1 mt-1" onclick="setHistSpecification();">Specify</button>
+                    <button id="spec_im" class="col btn btn-dark ml-1 mr-1 mt-1" onclick="saveSpecification(); $('#spec_im').addClass('d-none'); $('#spec_cst').removeClass('d-none');">Use Image Specification</button>
+                    <button id="spec_cst" class="col btn btn-dark ml-1 mr-1 mt-1 d-none" onclick="toggleCustomSpec(); $('#spec_im').removeClass('d-none'); $('#spec_cst').addClass('d-none');">Use Custom Specification</button>
                 </div>
             </div>
             <div class="col">
@@ -132,6 +140,7 @@
     // TAKE A SNAPSHOT CODE
     //---------------------
     var canvas, ctx, canvas2, ctx2, reference_freq;
+    var custom_spec_enabled = true;
 
     function init() {
         // Get the canvas and obtain a context for
@@ -358,42 +367,39 @@
         },
         options: {
             'onClick': (evt, item) => {
-                var activePoints = spec_chart.getElementsAtEvent(evt);
-                var firstPoint = activePoints[0];
-                var scaler=spec_chart.scales['y-axis-0'];
-                var y=evt.offsetY-scaler.top;
-                var yval=scaler.max-y/scaler.height*(scaler.max-scaler.min);
-                
-                var scaler2=spec_chart.scales['x-axis-0'];
-                var pl = parseInt($("#spec_chart").css('padding-left'));
-                var width = scaler2.width;
-                var x=evt.offsetX-scaler2.left;
-                var xval=(x)/width*(scaler2.max-scaler2.min);
-                xval = Math.round(xval);
-                yval = Math.round(yval);
-                var obj = {
-                    x: xval,
-                    y: yval
-                };
-                if ((xval > 0) && (xval < 255) && (yval > 0) && (yval < 100)) {
-                    // if (firstPoint !== undefined){
-                    //     removePoint(obj);
-                    // } else {
-                    //     addPoint(obj);
-                    // }
-                    var i = 0;
-                    while ((points[i].x < obj.x) && (i < points.length - 1)) {
-                        i++;
+                if (custom_spec_enabled) {
+                    var activePoints = spec_chart.getElementsAtEvent(evt);
+                    var firstPoint = activePoints[0];
+                    var scaler=spec_chart.scales['y-axis-0'];
+                    var y=evt.offsetY-scaler.top;
+                    var yval=scaler.max-y/scaler.height*(scaler.max-scaler.min);
+                    
+                    var scaler2=spec_chart.scales['x-axis-0'];
+                    var pl = parseInt($("#spec_chart").css('padding-left'));
+                    var pr = parseInt($("#spec_chart").css('padding-right'));
+                    var width = scaler2.width - pl - pr;
+                    var x=evt.offsetX-scaler2.left;
+                    var xval=(x - pl)/width*(scaler2.max-scaler2.min);
+                    xval = Math.round(xval);
+                    yval = Math.round(yval);
+                    var obj = {
+                        x: xval,
+                        y: yval
+                    };
+                    if ((xval >= 0) && (xval < 255) && (yval >= 0) && (yval < 100)) {
+                        var i = 0;
+                        while ((points[i].x < obj.x) && (i < points.length - 1)) {
+                            i++;
+                        }
+                        var dist1 = Math.abs(points[i - 1].x - obj.x);
+                        var dist2 = Math.abs(points[i].x - obj.x);
+                        if (dist1 < dist2) {
+                            points[i - 1].y = obj.y;
+                        } else {
+                            points[i].y = obj.y;
+                        }
+                        redrawPoints();
                     }
-                    var dist1 = Math.abs(points[i - 1].x - obj.x);
-                    var dist2 = Math.abs(points[i].x - obj.x);
-                    if (dist1 < dist2) {
-                        points[i - 1].y = obj.y;
-                    } else {
-                        points[i].y = obj.y;
-                    }
-
-                    redrawPoints();
                 }
             },
             scales: {
@@ -516,6 +522,13 @@
         reference_freq = new Array(4);
         for (var i = 0 ; i < 4; i++) {
             reference_freq[i] = acc;
+        }
+    }
+
+    function toggleCustomSpec() {
+        custom_spec_enabled = !custom_spec_enabled;
+        if (custom_spec_enabled) {
+            redrawPoints();
         }
     }
 
@@ -736,6 +749,7 @@
     }
 
     function saveSpecification() {
+        custom_spec_enabled = false;
         if (counts) {
             reference_freq = new Array(4)
             for (var i = 0; i < 4; i ++) {
