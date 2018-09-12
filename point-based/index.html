@@ -8,13 +8,13 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.2/Chart.bundle.min.js"></script>
 <script src="exif.js"></script>
 <style>
-@media screen and (min-width: 600px) and (orientation:portrait) {
+/* @media screen and (min-width: 600px) and (orientation:portrait) {
      
     :root {
         font-size: 32px;
     }
 
-}
+} */
 .image-box {
     margin: 1rem;
     box-shadow: 0 3px 10px 0 #00000022;
@@ -28,53 +28,51 @@
         <div class="row d-flex justify-content-center mb-2 mt-2">
             <h1>Image Processor</h1>
         </div>
-        <div id="snapshot" class="row d-flex justify-content-center mb-2 mt-2">
-            <button class="btn btn-dark" id="webcam_start" onclick="startWebcam(); $('#webcam_start').addClass('d-none');">Start Webcam</button> 
-            <div id="webcam_control" class="d-none">
-                <button class="btn btn-dark mr-1" id="webcam_snapshot" onclick="snapshot();">Take Snapshot</button> 
-                <button class="btn btn-dark ml-1" id="webcam_stop" onclick="stopWebcam(); $('#webcam_start').removeClass('d-none'); $('#webcam_control').addClass('d-none');">Stop Webcam</button> 
+        <div class="row d-flex ml-1 mr-1">
+            <div class="col-4">
+                <div id="snapshot" class="row d-flexmt-1">
+                    <button class="col btn btn-dark" id="webcam_start" onclick="startWebcam(); $('#webcam_start').addClass('d-none');">Start Webcam</button> 
+                    <div id="webcam_control" class="col d-none" style="padding: 0;">
+                        <button class="col btn btn-dark mr-1 mt-1" id="webcam_snapshot" onclick="snapshot();">Take Snapshot</button> 
+                        <button class="col btn btn-dark mr-1 mt-1" id="webcam_stop" onclick="stopWebcam(); $('#webcam_start').removeClass('d-none'); $('#webcam_control').addClass('d-none');">Stop Webcam</button> 
+                    </div>
+                </div>
+                <div class="row d-flex mt-1">
+                    <input id="image_file_input" oninput="load_image_file(this.files[0]);" type="file" accept="image/*" capture="camera" style="display: none;">
+                    <input class="col btn btn-dark" type="button" onclick="$('#image_file_input').click();" value="Take Picture">
+                </div>
+                <div id="controls" class="row d-none">
+                    <span class="col-12">Controls</span>
+                    <button class="col btn btn-dark ml-1 mr-1 mt-1" onclick="resetPixels();">Reset</button> 
+                    <button class="col btn btn-dark ml-1 mr-1 mt-1" onclick="setContrast(150)">Vivid</button>
+                    <button class="col btn btn-dark ml-1 mr-1 mt-1" onclick="setContrast(255, 1.5)">High Contrast</button>
+                    <div class="col-12">Equalization</div>
+                    <button class="col btn btn-dark ml-1 mr-1 mt-1" onclick="equalizePixels();">Equalize</button> 
+                    <button class="col btn btn-dark ml-1 mr-1 mt-1" onclick="equalizePixels(1.25);">Brighter</button> 
+                    <button class="col btn btn-dark ml-1 mr-1 mt-1" onclick="equalizePixels(0.75);">Darken</button> 
+                    <button class="col btn btn-dark ml-1 mr-1 mt-1" onclick="equalizePixels(0.85, 0, 0.5);">Reduce Contrast</button> 
+                    <button class="col btn btn-dark ml-1 mr-1 mt-1" onclick="equalizePixels(1.25, 0, 1.5);">Higher Contrast</button>
+                    <div class="col-12">Channels</div>
+                    <button class="col btn btn-dark ml-1 mr-1 mt-1" onclick="setChannel(1, 0, 0)">Red</button>
+                    <button class="col btn btn-dark ml-1 mr-1 mt-1" onclick="setChannel(0, 1, 0)">Green</button>
+                    <button class="col btn btn-dark ml-1 mr-1 mt-1" onclick="setChannel(0, 0, 1)">Blue</button>
+                    <button class="col btn btn-dark ml-1 mr-1 mt-1" onclick="setGrayscale();">Grayscale</button> 
+                    <div class="col-12">Specification</div>
+                    <button class="col btn btn-dark ml-1 mr-1 mt-1" onclick="saveSpecification()">Save Specification</button>
+                    <button class="col btn btn-dark ml-1 mr-1 mt-1" onclick="setHistSpecification()">Specification</button>
+                </div>
             </div>
-        </div>
-        <div class="row d-flex justify-content-center mb-2 mt-2">
-            <input id="image_file_input" oninput="load_image_file(this.files[0]);" type="file" accept="image/*" capture="camera" style="display: none;">
-            <input class="btn btn-dark" type="button" onclick="$('#image_file_input').click();" value="Take Picture">
-        </div>
-        <div class="row d-flex justify-content-center align-items-center">
-            <div class="col-lg-6 col-md-10 col-12 d-flex justify-content-center align-items-center">
-                <canvas class="image-box" id="image_canvas" width="480" height="360" style="max-width: 100%; height: auto;"></canvas>
-            </div>
-            <div class="col-lg-6 col-md-10 col-12 d-flex justify-content-center align-items-center">
-                <canvas class="image-box" id="image_canvas_2" width="480" height="360" style="max-width: 100%; height: auto;"></canvas>
-            </div>
-            <canvas class="col-lg-6 col-md-10 col-12" id="main_chart" width="400" height="400"></canvas>
-            <canvas class="col-lg-6 col-md-10 col-12" id="spec_chart" width="400" height="400"></canvas>
-        </div>
-        <div id="controls" class="row justify-content-center d-none">
-            <div class="col-lg-4 col-md-6 col-12 justify-content-center mb-2 mt-2 ml-2 mr-2">
-                <div>Controls</div>
-                <button class="btn btn-dark mr-1 mt-1" onclick="resetPixels();">Reset</button> 
-                <button class="btn btn-dark mr-1 mt-1" onclick="setContrast(150)">Vivid</button>
-                <button class="btn btn-dark mr-1 mt-1" onclick="setContrast(255, 1.5)">High Contrast</button>
-            </div>
-            <div class="col-lg-4 col-md-6 col-12 justify-content-center mb-2 mt-2 ml-2 mr-2">
-                <div>Equalization</div>
-                <button class="btn btn-dark mr-1 mt-1" onclick="equalizePixels();">Equalize</button> 
-                <button class="btn btn-dark mr-1 mt-1" onclick="equalizePixels(1.25);">Brighter</button> 
-                <button class="btn btn-dark mr-1 mt-1" onclick="equalizePixels(0.75);">Darken</button> 
-                <button class="btn btn-dark mr-1 mt-1" onclick="equalizePixels(0.85, 0, 0.5);">Reduce Contrast</button> 
-                <button class="btn btn-dark mr-1 mt-1" onclick="equalizePixels(1.25, 0, 1.5);">Higher Contrast</button>
-            </div>
-            <div class="col-lg-4 col-md-6 col-12 justify-content-center mb-2 mt-2 ml-2 mr-2">
-                <div>Channels</div>
-                <button class="btn btn-dark mr-1 mt-1" onclick="setChannel(1, 0, 0)">Red</button>
-                <button class="btn btn-dark mr-1 mt-1" onclick="setChannel(0, 1, 0)">Green</button>
-                <button class="btn btn-dark mr-1 mt-1" onclick="setChannel(0, 0, 1)">Blue</button>
-                <button class="btn btn-dark mr-1 mt-1" onclick="setGrayscale();">Grayscale</button> 
-            </div>
-            <div class="col-lg-4 col-md-6 col-12 justify-content-center mb-2 mt-2 ml-2 mr-2">
-                <div>Specification</div>
-                <button class="btn btn-dark mr-1 mt-1" onclick="saveSpecification()">Save Specification</button>
-                <button class="btn btn-dark mr-1 mt-1" onclick="setHistSpecification()">Specification</button>
+            <div class="col">
+                <div class="row d-flex justify-content-center align-items-center">
+                    <div class="col-lg-6 col-md-8 col-12 d-flex justify-content-center align-items-center">
+                        <canvas class="image-box" id="image_canvas" width="480" height="360" style="max-width: 100%; height: auto;"></canvas>
+                    </div>
+                    <div class="col-lg-6 col-md-8 col-12 d-flex justify-content-center align-items-center">
+                        <canvas class="image-box" id="image_canvas_2" width="480" height="360" style="max-width: 100%; height: auto;"></canvas>
+                    </div>
+                    <canvas class="col-lg-6 col-md-8 col-12" id="main_chart" width="400" height="400"></canvas>
+                    <canvas class="col-lg-6 col-md-8 col-12" id="spec_chart" width="400" height="400"></canvas>
+                </div>
             </div>
         </div>
     </div>
@@ -146,6 +144,8 @@
             $("#snapshot").removeClass("d-flex");
             $("#snapshot").addClass("d-none");
         }
+
+        redrawPoints();
     }
 
     function snapshot() {
@@ -168,7 +168,6 @@
             counts = countPixels(image);
             resetColorChart(counts);
             $("#controls").removeClass("d-none");
-            $("#controls").addClass("d-flex");
         }
     }
 
@@ -217,7 +216,6 @@
                 counts = countPixels(image);
                 resetColorChart(counts);
                 $("#controls").removeClass("d-none");
-                $("#controls").addClass("d-flex");
             };
 
             reader.onload = function(event) {
@@ -237,9 +235,6 @@
             labels: Array.from(Array(256).keys()),
             datasets: [{
                 lineTension: 0,
-                radius: 0,
-                hitRadius: 3,
-                hoverRadius: 1,
                 label: 'Red',
                 data: [],
                 backgroundColor: [
@@ -251,9 +246,6 @@
                 borderWidth: 1
             },{
                 lineTension: 0,
-                radius: 0,
-                hitRadius: 3,
-                hoverRadius: 1,
                 label: 'Green',
                 data: [],
                 backgroundColor: [
@@ -265,9 +257,6 @@
                 borderWidth: 1
             },{
                 lineTension: 0,
-                radius: 0,
-                hitRadius: 3,
-                hoverRadius: 1,
                 label: 'Blue',
                 data: [],
                 backgroundColor: [
@@ -279,9 +268,6 @@
                 borderWidth: 1
             },{
                 lineTension: 0,
-                radius: 0,
-                hitRadius: 3,
-                hoverRadius: 1,
                 label: 'Grayscale',
                 data: [],
                 backgroundColor: [
@@ -301,13 +287,20 @@
                         beginAtZero:true
                     }
                 }]
+            },
+            elements: {
+                point: {
+                    radius: 0,
+                    hitRadius: 0,
+                    hoverRadius: 0
+                }
             }
         }
     });
 
     var points = [];
-    var default_y = 50;
-    var points_count = 8;
+    var default_y = 10;
+    var points_count = 16;
     for (var i = 0; i < points_count; i++) {
         var obj = {
             x: Math.round(i / (points_count - 1) * 255),
@@ -322,10 +315,6 @@
         data: {
             labels: Array.from(Array(256).keys()),
             datasets: [{
-                lineTension: 0,
-                radius: 0,
-                hitRadius: 3,
-                hoverRadius: 1,
                 label: 'Red',
                 data: [],
                 backgroundColor: [
@@ -336,10 +325,6 @@
                 ],
                 borderWidth: 1
             },{
-                lineTension: 0,
-                radius: 0,
-                hitRadius: 3,
-                hoverRadius: 1,
                 label: 'Green',
                 data: [],
                 backgroundColor: [
@@ -350,10 +335,6 @@
                 ],
                 borderWidth: 1
             },{
-                lineTension: 0,
-                radius: 0,
-                hitRadius: 3,
-                hoverRadius: 1,
                 label: 'Blue',
                 data: [],
                 backgroundColor: [
@@ -364,10 +345,6 @@
                 ],
                 borderWidth: 1
             },{
-                lineTension: 0,
-                radius: 0,
-                hitRadius: 3,
-                hoverRadius: 1,
                 label: 'Grayscale',
                 data: [],
                 backgroundColor: [
@@ -389,9 +366,9 @@
                 
                 var scaler2=spec_chart.scales['x-axis-0'];
                 var pl = parseInt($("#spec_chart").css('padding-left'));
-                var width = scaler2.width - pl - parseInt($("#spec_chart").css('padding-right'));
+                var width = scaler2.width;
                 var x=evt.offsetX-scaler2.left;
-                var xval=(x - pl)/width*(scaler2.max-scaler2.min);
+                var xval=(x)/width*(scaler2.max-scaler2.min);
                 xval = Math.round(xval);
                 yval = Math.round(yval);
                 var obj = {
@@ -425,12 +402,23 @@
                         max: 100,
                         beginAtZero: true,
                     }
+                }],
+                xAxes: [{
+                    ticks: {
+                        autoSkip: true,
+                        maxTicksLimit: 15
+                    }
                 }]
+            },
+            elements: {
+                point: {
+                    radius: 3,
+                    hitRadius: 0,
+                    hoverRadius: 0
+                }
             }
         }
     });
-
-    redrawPoints();
 
     function addPoint(p) {
         var idx = -1;
@@ -471,29 +459,64 @@
     }
     
     function redrawPoints() {
-        var vals = new Array(256);
-        for (var i = 0; i < points[0].x; i++) {
-            vals[i] = points[0].y;
-        }
-        for (var i = points[points.length-1].x; i < 256; i++) {
-            vals[i] = points[points.length-1].y;
-        }
-        for (var i = 0; i < points.length - 1; i++) {
-            var start = points[i].x;
-            var end = points[i + 1].x;
-            var width = end - start;
-            var height = points[i + 1].y - points[i].y;
-            for (var x = start; x <= end; x++) {
-                var y = (x - start) / width * height + points[i].y;;
-                vals[x] = y;
-            }
-        }
-        reference_freq = new Array(4);
         for (var i = 0 ; i < 4; i++) {
-            reference_freq[i] = vals;
-            spec_chart.data.datasets[i].data = vals;
+            spec_chart.data.datasets[i].data = points;
         }
         spec_chart.update();
+        // Draw a curve at a temporary canvas.
+        var tcvs = document.createElement('canvas');
+        tcvs.width = 256;
+        tcvs.height = 100;
+        var tctx = tcvs.getContext('2d');
+        var w = tctx.canvas.width/255;
+        var h = tctx.canvas.height/100;
+        tctx.clearRect(0, 0, tctx.canvas.width, tctx.canvas.height);
+        tctx.beginPath(); 
+        tctx.lineWidth="1";
+        tctx.strokeStyle="black";
+        var cp = [];
+        tension = 0.25;
+        cp.push({
+            x: points[0].x + (points[1].x - points[0].x) * tension,
+            y: points[0].y + (points[1].y - points[0].y) * tension
+        });
+        for (var i = 1; i < points.length - 1; i++) {
+            cp.push({
+                x: points[i].x + (points[i - 1].x - points[i + 1].x) * tension / 2,
+                y: points[i].y + (points[i - 1].y - points[i + 1].y) * tension / 2
+            });
+            cp.push({
+                x: points[i].x + (points[i + 1].x - points[i - 1].x) * tension / 2,
+                y: points[i].y + (points[i + 1].y - points[i - 1].y) * tension / 2
+            });
+        }
+        cp.push({
+            x: points[points.length - 1].x + (points[points.length - 2].x - points[points.length - 1].x) * tension,
+            y: points[points.length - 1].y + (points[points.length - 2].y - points[points.length - 1].y) * tension
+        });
+        tctx.moveTo(points[0].x * w, points[0].y * h);
+        for (var i = 1; i < points.length; i++) {
+            tctx.bezierCurveTo(cp[(i - 1) * 2].x * w, cp[(i - 1) * 2].y * h, cp[(i - 1) * 2 + 1].x * w, cp[(i - 1) * 2 + 1].y * h, points[i].x * w, points[i].y * h);
+        }
+        tctx.stroke();
+        // Get the curve values.
+        var vals = new Array(256);
+        var height = tctx.canvas.width;
+        for (var i = 0; i < 256; i++) {
+            var iData = tctx.getImageData(i, 0, 1, tctx.canvas.height);
+            var data = iData.data;
+            for (var y=0; y<height; y++) {
+                if (data[y*4+3]>10) {
+                    vals[i]=y/h;
+                    break;
+                }
+            }
+        }
+        var acc = equalizeChannel(vals);
+        reference_freq = new Array(4);
+        for (var i = 0 ; i < 4; i++) {
+            reference_freq[i] = acc;
+        }
     }
 
     function resetColorChart(frequency) {
