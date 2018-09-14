@@ -22,6 +22,10 @@
     }
 
 } */
+.btn {
+    white-space:normal !important;
+    word-wrap: break-word;
+}
 .image-box {
     margin: 1rem;
     box-shadow: 0 3px 10px 0 #00000022;
@@ -309,7 +313,7 @@
 
     var points = [];
     var default_y = 10;
-    var points_count = 16;
+    var points_count = 8;
     for (var i = 0; i < points_count; i++) {
         var obj = {
             x: Math.round(i / (points_count - 1) * 255),
