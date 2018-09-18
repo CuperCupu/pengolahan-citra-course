@@ -154,13 +154,15 @@
             }
             canvas.width = width;
             canvas.height = height;
-            canvas2.width = width;
-            canvas2.height = height;
             ctx.drawImage(video, 0, 0);
             image = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            ctx2.putImageData(image, 0, 0);
-            counts = countPixels(image);
-            resetColorChart(counts);
+            image = preprocessImage(image);
+            ctx.mozImageSmoothingEnabled = false;
+            ctx.webkitImageSmoothingEnabled = false;
+            ctx.msImageSmoothingEnabled = false;
+            ctx.imageSmoothingEnabled = false;
+            ctx.putImageData(image, 0, 0);
+            findBoundary(image);
             $("#controls").removeClass("d-none");
         }
     }
@@ -220,7 +222,11 @@
             }
             reader.readAsDataURL(img_url);
         } catch(err) {
-            alert("loading :" + err.message);
+            if (err.name == "TypeError") {
+
+            } else {
+                alert("loading: " + err);
+            }
         }
     }
 
@@ -286,12 +292,18 @@
     }
 
     class ChainCode {
-        constructor() {
-            this.code = []
+        constructor(code = "") {
+            this.code = code;
+            this.length = 0;
         }
 
         addCode(code) {
-            this.code.push(code);
+            this.code += code;
+            this.length++;
+        }
+
+        toString() {
+            return this.code;
         }
     }
 
@@ -374,13 +386,15 @@
             sy = y = pos.y;
             var iter = 0;
             var trace = []
+            var opaque = false;
             do {
-                var opaque = false;
+                opaque = false;
                 var it = 0;
                 dir = offsetDir(dir, 2);
                 while ((!opaque) && (it < 8)) {
                     var off = getOffset(dir);
-                    opaque = getImgPixelAt(img, x + off.x, y + off.y).r > 0;
+                    var color = getImgPixelAt(img, x + off.x, y + off.y);
+                    opaque = color == null ? false: color.r > 0;
                     if (!opaque) {
                         it++;
                         dir = prevDir(dir);
@@ -392,10 +406,9 @@
                     }
                 }
                 iter++;
-            } while ((x != sx) || (y != sy));
+            } while (((x != sx) || (y != sy)) && (opaque));
             for (var i = 0; i < trace.length; i++) {
-                var v = i / iter * 255;
-                setImgPixelAt(img, trace[i].x, trace[i].y, new Color(255, v, 0, 255));
+                setImgPixelAt(img, trace[i].x, trace[i].y, new Color(255, 0, 0, 255));
             }
             setImgPixelAt(img, sx, sy, new Color(0, 255, 0, 255));
             ctx.mozImageSmoothingEnabled = false;
@@ -406,7 +419,7 @@
             console.log(iter, result.code);
             return result;
         } catch(err) {
-            alert("boundary: " + err.message);
+            alert("boundary: " + err);
         }
     }
 
