@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="description" content="Image processing">
+    <meta name="keywords" content="Image Processing, Equalization, Contrast Stretching, Histogram Specification">
+    <meta name="author" content="Suhendi">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Processor</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.2/Chart.bundle.min.js"></script>
+    <script src="exif.js"></script>
+    <link rel="icon" href="/icon.png" type="image/png"/>
+    <link rel="shortcut icon" href="/icon.png" type="image/png"/>
+<style>
+/* @media screen and (min-width: 600px) and (orientation:portrait) {
+     
+    :root {
+        font-size: 32px;
+    }
+
+} */
+.btn {
+    white-space:normal !important;
+    word-wrap: break-word;
+}
+.image-box {
+    margin: 1rem;
+    box-shadow: 0 3px 10px 0 #00000022;
+    background-color: rgba(225, 225, 225, 1);
+}
+</style>
+</head>
+<body onload="init();">
+    <video width=640 height=480 id="video" style="display: none;" controls autoplay></video>
+    <div class="container">
+        <div class="row d-flex justify-content-center mb-2 mt-2">
+            <h1>Image Processor</h1>
+        </div>
+        <div class="row d-flex ml-1 mr-1">
+            <div class="col-12">
+                <div class="col-lg-6 col-md-8 col-12 mx-auto">
+                    <div id="snapshot" class="row d-flex mt-1">
+                        <button class="col btn btn-dark" id="webcam_start" onclick="startWebcam(); $('#webcam_start').addClass('d-none');">Start Webcam</button> 
+                        <div id="webcam_control" class="col d-none" style="padding: 0;">
+                            <button class="col btn btn-dark mr-1 mt-1" id="webcam_snapshot" onclick="snapshot();">Take Snapshot</button> 
+                            <button class="col btn btn-dark mr-1 mt-1" id="webcam_stop" onclick="stopWebcam(); $('#webcam_start').removeClass('d-none'); $('#webcam_control').addClass('d-none');">Stop Webcam</button> 
+                        </div>
+                    </div>
+                    <div class="row d-flex mt-1">
+                        <input id="image_file_input" oninput="load_image_file(this.files[0]);" type="file" accept="image/*" capture="camera" style="display: none;">
+                        <input class="col btn btn-dark" type="button" onclick="$('#image_file_input').click();" value="Take Picture">
+                    </div>
+                    <div id="controls" class="row d-none">
+                    
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="row d-flex justify-content-center align-items-center">
+                    <div class="col-lg-6 col-md-8 col-12 d-flex justify-content-center align-items-center">
+                        <canvas class="image-box" id="image_canvas" width="480" height="360" style="max-width: 100%; height: auto;"></canvas>
+                    </div>
+                    <!-- <div class="col-lg-6 col-md-8 col-12 d-flex justify-content-center align-items-center">
+                        <canvas class="image-box" id="image_canvas_2" width="480" height="360" style="max-width: 100%; height: auto;"></canvas>
+                    </div> -->
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+<script>
+    navigator.getUserMedia = ( navigator.getUserMedia ||
+                             navigator.webkitGetUserMedia ||
+                             navigator.mozGetUserMedia ||
+                             navigator.msGetUserMedia);
+
+    var video;
+    var webcamStream;
+    var image;
+    var counts;
+    Math.clamp=function(a,b,c){return Math.max(b,Math.min(c,a));}
+
+    function startWebcam() {
+        if (navigator.getUserMedia) {
+           navigator.getUserMedia (
+                // constraints
+                {
+                    video: {width: {exact: 640}, height: {exact: 480}},
+                    audio: false
+                },
+
+                // successCallback
+                function(localMediaStream) {
+                    video = document.querySelector('video');
+                    video.srcObject = localMediaStream;
+                    webcamStream = localMediaStream;
+                    $("#webcam_control").removeClass("d-none");
+                },
+
+                // errorCallback
+                function(err) {
+                    console.log("The following error occured: " + err);
+                    if (err instanceof DOMException) {
+                        alert("Webcam permission denied.");
+                        $("#snapshot").removeClass("d-flex");
+                        $("#snapshot").addClass("d-none");
+                    }
+                }
+           );
+        } else {
+            console.log("getUserMedia not supported");
+            $("#snapshot").removeClass("d-flex");
+            $("#snapshot").addClass("d-none");
+        }
+    }
+
+    function stopWebcam() {
+        if (webcamStream) {
+            webcamStream.getTracks().forEach(function (track) { track.stop(); });
+        }
+    }
+    //---------------------
+    // TAKE A SNAPSHOT CODE
+    //---------------------
+    var canvas, ctx, canvas2, ctx2, reference_freq;
+    var custom_spec_enabled = true;
+
+    function init() {
+        // Get the canvas and obtain a context for
+        // drawing in it
+        canvas = document.getElementById("image_canvas");
+        ctx = canvas.getContext('2d');
+        // canvas2 = document.getElementById("image_canvas_2");
+        // ctx2 = canvas2.getContext('2d');
+        if ((location.protocol !== "https:") && (location.hostname != "localhost")) {
+            $("#snapshot").removeClass("d-flex");
+            $("#snapshot").addClass("d-none");
+        }
+
+    }
+
+    function snapshot() {
+        if (video) {
+            var width = video.width;
+            var height = video.height;
+            var orientation = screen.msOrientation || (screen.orientation || screen.mozOrientation || {}).type;
+            if ((orientation === "landscape-primary") ||(orientation === "landscape-secondary")) {
+            } else if ((orientation === "portrait-primary") || (orientation === "portrait-secondary") ){
+                width = video.height;
+                height = video.width;
+            }
+            canvas.width = width;
+            canvas.height = height;
+            canvas2.width = width;
+            canvas2.height = height;
+            ctx.drawImage(video, 0, 0);
+            image = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            ctx2.putImageData(image, 0, 0);
+            counts = countPixels(image);
+            resetColorChart(counts);
+            $("#controls").removeClass("d-none");
+        }
+    }
+
+    function load_image_file(img_url) {
+        try {
+            var img = new Image();
+            var reader = new FileReader();
+            img.setAttribute('crossOrigin', 'anonymous');
+
+            img.onload = function () {
+                var rotation = 0;
+                var orientation = 0;
+                EXIF.getData(this, function() {
+                    orientation = EXIF.getTag(this, "Orientation");
+                    if ((orientation == 1) || (orientation == 2)) {
+                        rotation = 0;
+                    } else if ((orientation == 3) || (orientation == 4)) {
+                        rotation = 180;
+                    } else if ((orientation == 5) || (orientation == 6)) {
+                        rotation = -90;
+                    } else if ((orientation == 7) || (orientation == 8)) {
+                        rotation = 90;
+                    }
+                });
+                var width = 0;
+                var height = 0;
+                if ((rotation == 0) || (rotation == 180) || (rotation == -180)) {
+                    canvas.height = canvas.width * (img.height / img.width);
+                    width = canvas.height;
+                    height = canvas.width;
+                } else {
+                    canvas.height = canvas.width * (img.width / img.height);
+                    width = canvas.width;
+                    height = canvas.height;
+                }
+                rotation = rotation / 180 * Math.PI;
+                ctx.save();
+                ctx.translate(canvas.width/2, canvas.height/2);
+                ctx.rotate(-rotation);
+                ctx.drawImage(this, -height/2, -width/2, height, width);
+                ctx.restore();
+                image = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                image = preprocessImage(image);
+                ctx.mozImageSmoothingEnabled = false;
+                ctx.webkitImageSmoothingEnabled = false;
+                ctx.msImageSmoothingEnabled = false;
+                ctx.imageSmoothingEnabled = false;
+                ctx.putImageData(image, 0, 0);
+                findBoundary(image);
+                $("#controls").removeClass("d-none");
+            };
+
+            reader.onload = function(event) {
+                the_url = event.target.result
+                img.src = the_url;
+            }
+            reader.readAsDataURL(img_url);
+        } catch(err) {
+            alert("loading :" + err.message);
+        }
+    }
+
+    function preprocessImage(img) {
+        try {
+            var newimg = ctx.createImageData(img.width, img.height);
+            for (var i = 0; i < img.data.length; i += 4) {
+                let grey = (img.data[i] + img.data[i + 1] + img.data[i + 2]) / 3;
+                if (grey > 127) {
+                    grey = 255;
+                } else {
+                    grey = 0;
+                }
+                newimg.data[i] = grey;
+                newimg.data[i + 1] = grey;
+                newimg.data[i + 2] = grey;
+                newimg.data[i + 3] = 255;
+            }
+            return newimg;
+        } catch(err) {
+            alert("preprocess: " + err.message);
+        }
+    }
+
+    var getImgPixelAt = function(img, x, y) {
+        let offset = (x + y * img.width)  * 4;
+        if ((offset < 0) || (offset > img.data.length)) {
+            return null;
+        }
+        return new Color(img.data[offset], img.data[offset + 1], img.data[offset + 2], img.data[offset + 3]);
+    }
+
+    var setImgPixelAt = function(img, x, y, color) {
+        let offset = (x + y * img.width)  * 4;
+        if ((offset < 0) || (offset > img.data.length)) {
+            return false;
+        }
+        img.data[offset] = color.r;
+        img.data[offset + 1] = color.g;
+        img.data[offset + 2] = color.b;
+        img.data[offset + 3] = color.a;
+        return true;
+    }
+
+    class Point {
+        constructor(x, y) {
+            this.x = x;
+            this.y = y;
+        }
+    }
+
+    class Color {
+        constructor(r, g, b, a=255) {
+            this.r = r;
+            this.g = g;
+            this.b = b;
+            this.a = a;
+        }
+
+        getBrightness() {
+            return (this.r + this.g + this.b) / 3;
+        }
+    }
+
+    class ChainCode {
+        constructor() {
+            this.code = []
+        }
+
+        addCode(code) {
+            this.code.push(code);
+        }
+    }
+
+    var findNonEmpty = function(img) {
+        let x = 0;
+        let y = 0;
+        let found = false;
+        while ((!found) && ((x < img.width) && (y < img.height))) {
+            found = getImgPixelAt(img, x, y).r > 0;
+            if (!found) {
+                x += 1;
+                if (x >= img.width) {
+                    x = 0;
+                    y += 1;
+                }
+            }
+        }
+        if (found) {
+            return {
+                x: x,
+                y: y
+            }
+        }
+        return null;
+    }
+
+    var getOffset = function(dir) {
+        if (dir == 0) {
+            return new Point(0, 0);
+        } else if (dir == 1) { // Right
+            return new Point(1, 0);
+        } else if (dir == 2) { // Up-Right
+            return new Point(1, 1);
+        } else if (dir == 3) { // Up
+            return new Point(0, 1);
+        } else if (dir == 4) { // Up-Left
+            return new Point(-1, 1);
+        } else if (dir == 5) { // Left
+            return new Point(-1, 0);
+        } else if (dir == 6) { // Down-Left
+            return new Point(-1, -1);
+        } else if (dir == 7) { // Down
+            return new Point(0, -1);
+        } else if (dir == 8) { // Down-Right
+            return new Point(1, -1);
+        }
+        return null;
+    }
+
+    var getSide = function(dir) {
+        var off = getOffset(dir);
+        return new Point(-off.y, off.x);
+    }
+
+    var offsetDir = function(dir, off) {
+        dir += off;
+        if (dir > 8) {
+            dir = 1;
+        } else if (dir < 1) {
+            dir = 8;
+        }
+        return dir;
+    }
+
+    var nextDir = function(dir) {
+        return offsetDir(dir, 1);
+    }
+
+    var prevDir = function(dir) {
+        return offsetDir(dir, -1);
+    }
+
+    function findBoundary(img) {
+        try {
+            var result = new ChainCode();
+            var x, y, sx, sy = 0;
+            var dir = 1;
+            var pos = findNonEmpty(img);
+            sx = x = pos.x;
+            sy = y = pos.y;
+            var iter = 0;
+            do {
+                var opaque = false;
+                var it = 0;
+                dir = offsetDir(dir, 2);
+                while ((!opaque) && (it < 8)) {
+                    var off = getOffset(dir);
+                    opaque = getImgPixelAt(img, x + off.x, y + off.y).r > 0;
+                    if (!opaque) {
+                        it++;
+                        dir = prevDir(dir);
+                    } else {
+                        result.addCode(dir);
+                        setImgPixelAt(img, x, y, new Color(255, 0, 0, 255));
+                        x += off.x;
+                        y += off.y;
+                    }
+                }
+                iter++;
+            } while ((x != sx) || (y != sy));
+            ctx.mozImageSmoothingEnabled = false;
+            ctx.webkitImageSmoothingEnabled = false;
+            ctx.msImageSmoothingEnabled = false;
+            ctx.imageSmoothingEnabled = false;
+            ctx.putImageData(img, 0, 0);
+            console.log(result.code);
+            return result;
+        } catch(err) {
+            alert("boundary: " + err.message);
+        }
+    }
+
+</script>
