@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Image Processor</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
-    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.2/Chart.bundle.min.js"></script>
@@ -155,14 +155,7 @@
             canvas.width = width;
             canvas.height = height;
             ctx.drawImage(video, 0, 0);
-            image = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            image = preprocessImage(image);
-            ctx.mozImageSmoothingEnabled = false;
-            ctx.webkitImageSmoothingEnabled = false;
-            ctx.msImageSmoothingEnabled = false;
-            ctx.imageSmoothingEnabled = false;
-            ctx.putImageData(image, 0, 0);
-            findBoundary(image);
+            main();            
             $("#controls").removeClass("d-none");
         }
     }
@@ -205,14 +198,7 @@
                 ctx.rotate(-rotation);
                 ctx.drawImage(this, -height/2, -width/2, height, width);
                 ctx.restore();
-                image = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                image = preprocessImage(image);
-                ctx.mozImageSmoothingEnabled = false;
-                ctx.webkitImageSmoothingEnabled = false;
-                ctx.msImageSmoothingEnabled = false;
-                ctx.imageSmoothingEnabled = false;
-                ctx.putImageData(image, 0, 0);
-                findBoundary(image);
+                main();
                 $("#controls").removeClass("d-none");
             };
 
@@ -228,6 +214,30 @@
                 alert("loading: " + err);
             }
         }
+    }
+
+    var preset = {}
+
+    function main() {
+        image = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        image = preprocessImage(image);
+        ctx.mozImageSmoothingEnabled = false;
+        ctx.webkitImageSmoothingEnabled = false;
+        ctx.msImageSmoothingEnabled = false;
+        ctx.imageSmoothingEnabled = false;
+        ctx.putImageData(image, 0, 0);
+        findBoundary(image);
+    }
+
+    function loadPreset() {
+        $.ajax("preset.json", {
+            dataType: "json",
+            success: function(response) {
+                for (var i in response) {
+                    preset[i] = new ChainCode(response[i]);
+                }
+            }
+        });
     }
 
     function preprocessImage(img) {
@@ -293,8 +303,11 @@
 
     class ChainCode {
         constructor(code = "") {
-            this.code = code;
+            this.code = "";
             this.length = 0;
+            for (var i = 0; i < code.length; i++) {
+                this.addCode(code[i]);
+            }
         }
 
         addCode(code) {
@@ -422,5 +435,9 @@
             alert("boundary: " + err);
         }
     }
+    
+    $(document).ready(function() {
+        loadPreset();
+    });
 
 </script>
