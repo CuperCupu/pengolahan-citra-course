@@ -58,7 +58,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col">
+            <div class="col-12">
                 <div class="row d-flex justify-content-center align-items-center">
                     <div class="col-lg-6 col-md-8 col-12 d-flex justify-content-center align-items-center">
                         <canvas class="image-box" id="image_canvas" width="480" height="360" style="max-width: 100%; height: auto;"></canvas>
@@ -66,6 +66,14 @@
                     <!-- <div class="col-lg-6 col-md-8 col-12 d-flex justify-content-center align-items-center">
                         <canvas class="image-box" id="image_canvas_2" width="480" height="360" style="max-width: 100%; height: auto;"></canvas>
                     </div> -->
+                </div>
+            </div>
+            <div class="col-12">
+                <div class="row d-flex justify-content-center align-items-center">
+                    <div class="btn-dark col-lg-5 col-md-7 col-12 d-flex px-1 py-2" style="min-height: 2rem; border-radius: 0.25rem;">
+                        <span class="mx-2">Result: </span>
+                        <span id="result"></span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -226,7 +234,19 @@
         ctx.msImageSmoothingEnabled = false;
         ctx.imageSmoothingEnabled = false;
         ctx.putImageData(image, 0, 0);
-        findBoundary(image);
+        var chaincode = findBoundary(image);
+        var matches = matchAll(chaincode, 0.15);
+        if (matches.length > 0) {
+            var min = matches[0];
+            for (var i = 1; i < matches.length; i++) {
+                if (min.error > matches[i].error) {
+                    min = matches[i];
+                }
+            }
+            $("#result").text(min.name);
+        } else {
+            $("#result").text("No match");
+        }
     }
 
     function loadPreset() {
@@ -303,11 +323,8 @@
 
     class ChainCode {
         constructor(code = "") {
-            this.code = "";
-            this.length = 0;
-            for (var i = 0; i < code.length; i++) {
-                this.addCode(code[i]);
-            }
+            this.code = code;
+            this.length = code.length;
         }
 
         addCode(code) {
@@ -317,6 +334,46 @@
 
         toString() {
             return this.code;
+        }
+
+        getAt(x) {
+            var index = Math.round(x * this.length);
+            if (index === this.length) {
+                index--;
+            }
+            return this.code[index];
+        }
+
+        match(other) {
+            var min, max = null;
+            if (this.length > other.length) {
+                max = this;
+                min = other;
+            } else {
+                max = other;
+                min = this;
+            }
+            // Compare higher to lower.
+            var length1 = max.length;
+            var error1 = 0;
+            for (var i = 0; i < length1; i++) {
+                // error += max.code[i] !== min.getAt(i / length) ? 1 : 0;
+                var diff = getDirDiff(max.code[i], min.getAt(i / length1));
+                // console.log(max.code[i], min.getAt(i / length), diff);
+                error1 += diff;
+            }
+            // Compare lower to higher.
+            var length2 = min.length;
+            var error2 = 0;
+            for (var i = 0; i < length2; i++) {
+                // error += max.code[i] !== min.getAt(i / length) ? 1 : 0;
+                var diff = getDirDiff(min.code[i], max.getAt(i / length2));
+                // console.log(max.code[i], min.getAt(i / length), diff);
+                error2 += diff;
+            }
+            error1 = error1 / length1 / 4;
+            error2 = error2 / length2 / 4;
+            return (error1 + error2) / 2;
         }
     }
 
@@ -381,6 +438,10 @@
         return dir;
     }
 
+    var getDirDiff = function(dir1, dir2) {
+        return Math.min(Math.abs(dir1 - dir2), 8 - Math.abs(dir1 - dir2));
+    }
+
     var nextDir = function(dir) {
         return offsetDir(dir, 1);
     }
@@ -398,6 +459,7 @@
             sx = x = pos.x;
             sy = y = pos.y;
             var iter = 0;
+            var max_iter = img.data.length / 4;
             var trace = []
             var opaque = false;
             do {
@@ -419,7 +481,7 @@
                     }
                 }
                 iter++;
-            } while (((x != sx) || (y != sy)) && (opaque));
+            } while (((x != sx) || (y != sy)) && (opaque) && (iter < max_iter));
             for (var i = 0; i < trace.length; i++) {
                 setImgPixelAt(img, trace[i].x, trace[i].y, new Color(255, 0, 0, 255));
             }
@@ -429,11 +491,35 @@
             ctx.msImageSmoothingEnabled = false;
             ctx.imageSmoothingEnabled = false;
             ctx.putImageData(img, 0, 0);
-            console.log(iter, result.code);
             return result;
         } catch(err) {
             alert("boundary: " + err);
         }
+    }
+
+
+    var matchAll = function(code, maxerror=-1) {
+        /* return all name of preset that matches the code with maximum number of error <= maxerror.
+         use maxerror === -1 to return all.
+         return:
+         [
+             {
+                 "name": ...,
+                 "error": ...
+             }
+         ]
+         */
+        var result = []
+        for (var name in preset) {
+            var error = code.match(preset[name]);
+            if ((maxerror === -1) || (error < maxerror)) {
+                result.push({
+                    "name": name,
+                    "error": error
+                });
+            }
+        }
+        return result;
     }
     
     $(document).ready(function() {
