@@ -226,6 +226,64 @@
 
     var preset = {}
 
+    function detectOnce(image) {
+        var boundary = findBoundary(image);
+        if (boundary != null) {
+            var matches = matchAll(boundary.code, 0.15);
+            if (matches.length > 0) {
+                var min = matches[0];
+                for (var i = 1; i < matches.length; i++) {
+                    if (min.error > matches[i].error) {
+                        min = matches[i];
+                    }
+                }
+                return  {
+                    "name": min.name,
+                    "matches": matches,
+                    "boundary": boundary
+                };
+            }
+            return  {
+                "name": null,
+                "matches": matches,
+                "boundary": boundary
+            };
+    }
+        return null;
+    }
+
+    function detectAll(image) {
+        var string = "";
+        var results = [];
+        var result = detectOnce(image);
+        while (result != null) {
+            results.push(result)
+            fill(image, result.boundary, new Color(0, 0, 0, 255));
+            result = detectOnce(image);
+        }
+        results.sort(function (a, b) {
+            if (a.boundary.start.x < b.boundary.start.x) {
+                return -1;
+            } else if (a.boundary.start.x > b.boundary.start.x) {
+                return 1;
+            } else {
+                if (a.boundary.start.y < b.boundary.start.y) {
+                    return -1;
+                } else if (a.boundary.start.y > b.boundary.start.y) {
+                    return 1;
+                } else {
+                    return 0;
+                }
+            }
+        });
+        for (var k in results) {
+            if (results[k].name != null) {
+                string += results[k].name;
+            }
+        }
+        return string;
+    }
+
     function main() {
         image = ctx.getImageData(0, 0, canvas.width, canvas.height);
         image = preprocessImage(image);
@@ -234,19 +292,14 @@
         ctx.msImageSmoothingEnabled = false;
         ctx.imageSmoothingEnabled = false;
         ctx.putImageData(image, 0, 0);
-        var chaincode = findBoundary(image);
-        var matches = matchAll(chaincode, 0.15);
-        if (matches.length > 0) {
-            var min = matches[0];
-            for (var i = 1; i < matches.length; i++) {
-                if (min.error > matches[i].error) {
-                    min = matches[i];
-                }
-            }
-            $("#result").text(min.name);
+        var result = detectAll(image);
+        if (result) {
+            $("#result").text(result);
         } else {
             $("#result").text("No match");
         }
+        // fill(image, boundary, new Color(0, 255, 0, 255));
+        // ctx.putImageData(image, 0, 0);
     }
 
     function loadPreset() {
@@ -360,7 +413,8 @@
                 // error += max.code[i] !== min.getAt(i / length) ? 1 : 0;
                 var diff = getDirDiff(max.code[i], min.getAt(i / length1));
                 // console.log(max.code[i], min.getAt(i / length), diff);
-                error1 += diff;
+                error1 += diff <= 1 ? 0 : 1;
+                // error1 += diff;
             }
             // Compare lower to higher.
             var length2 = min.length;
@@ -369,10 +423,11 @@
                 // error += max.code[i] !== min.getAt(i / length) ? 1 : 0;
                 var diff = getDirDiff(min.code[i], max.getAt(i / length2));
                 // console.log(max.code[i], min.getAt(i / length), diff);
-                error2 += diff;
+                error2 += diff <= 1 ? 0 : 1;
+                // error2 += diff;
             }
-            error1 = error1 / length1 / 4;
-            error2 = error2 / length2 / 4;
+            error1 = error1 / length1;
+            error2 = error2 / length2;
             return (error1 + error2) / 2;
         }
     }
@@ -456,47 +511,205 @@
             var x, y, sx, sy = 0;
             var dir = 1;
             var pos = findNonEmpty(img);
-            sx = x = pos.x;
-            sy = y = pos.y;
-            var iter = 0;
-            var max_iter = img.data.length / 4;
-            var trace = []
-            var opaque = false;
-            do {
-                opaque = false;
-                var it = 0;
-                dir = offsetDir(dir, 2);
-                while ((!opaque) && (it < 8)) {
-                    var off = getOffset(dir);
-                    var color = getImgPixelAt(img, x + off.x, y + off.y);
-                    opaque = color == null ? false: color.r > 0;
-                    if (!opaque) {
-                        it++;
-                        dir = prevDir(dir);
-                    } else {
-                        result.addCode(dir);
-                        trace.push(new Point(x, y));
-                        x += off.x;
-                        y += off.y;
+            if (pos != null) {
+                sx = x = pos.x;
+                sy = y = pos.y;
+                var iter = 0;
+                var max_iter = img.data.length / 4;
+                var trace = []
+                var opaque = false;
+                do {
+                    opaque = false;
+                    var it = 0;
+                    dir = offsetDir(dir, 2);
+                    while ((!opaque) && (it < 8)) {
+                        var off = getOffset(dir);
+                        var color = getImgPixelAt(img, x + off.x, y + off.y);
+                        opaque = color == null ? false: color.r > 0;
+                        if (!opaque) {
+                            it++;
+                            dir = prevDir(dir);
+                        } else {
+                            result.addCode(dir);
+                            trace.push(new Point(x, y));
+                            x += off.x;
+                            y += off.y;
+                        }
                     }
+                    iter++;
+                } while (((x != sx) || (y != sy)) && (opaque) && (iter < max_iter));
+                for (var i = 0; i < trace.length; i++) {
+                    setImgPixelAt(img, trace[i].x, trace[i].y, new Color(255, 0, 0, 255));
                 }
-                iter++;
-            } while (((x != sx) || (y != sy)) && (opaque) && (iter < max_iter));
-            for (var i = 0; i < trace.length; i++) {
-                setImgPixelAt(img, trace[i].x, trace[i].y, new Color(255, 0, 0, 255));
+                setImgPixelAt(img, sx, sy, new Color(0, 255, 0, 255));
+                ctx.mozImageSmoothingEnabled = false;
+                ctx.webkitImageSmoothingEnabled = false;
+                ctx.msImageSmoothingEnabled = false;
+                ctx.imageSmoothingEnabled = false;
+                return {
+                    "start": new Point(sx, sy),
+                    "code": result,
+                    "trace": trace
+                };
             }
-            setImgPixelAt(img, sx, sy, new Color(0, 255, 0, 255));
-            ctx.mozImageSmoothingEnabled = false;
-            ctx.webkitImageSmoothingEnabled = false;
-            ctx.msImageSmoothingEnabled = false;
-            ctx.imageSmoothingEnabled = false;
-            ctx.putImageData(img, 0, 0);
-            return result;
+            return null;
         } catch(err) {
             alert("boundary: " + err);
         }
     }
 
+    var fill = function(img, boundary, color) {
+        // Determine fill region.
+        var min = new Point(img.width - 1, img.height - 1);
+        var max = new Point(0, 0);
+        for (var i = 0; i < boundary.trace.length; i++) {
+            if (boundary.trace[i].x > max.x) {
+                max.x = boundary.trace[i].x;
+            }
+            if (boundary.trace[i].x < min.x) {
+                min.x = boundary.trace[i].x;
+            }
+            if (boundary.trace[i].y > max.y) {
+                max.y = boundary.trace[i].y;
+            }
+            if (boundary.trace[i].y < min.y) {
+                min.y = boundary.trace[i].y;
+            }
+        }
+        // Boundary map.
+        var width = (max.x - min.x) + 1;
+        var height = (max.y - min.y) + 1;
+        var boundary_map = new Array(width * height);
+        // Fill with false value.
+        for (var i = 0; i < boundary_map.length; i++) {
+            boundary_map[i] = false;
+        }
+        for (var i = 0; i < boundary.trace.length; i++) {
+            boundary_map[(boundary.trace[i].x - min.x) + ((boundary.trace[i].y - min.y) * width)] = true;
+        }
+        var boundaryAt = function(tx, ty) {
+            return boundary_map[tx + (ty * width)];
+        }
+        // Start filling.
+        // Flood fill.
+        var x = boundary.start.x - min.x + 1;
+        var y = boundary.start.y - min.y + 1;
+        var next = []
+        var indexOf = function(x, y) {
+            var found = false;
+            var i = 0;
+            while ((!found) && (i < next.length)) {
+                found = ((x === next[i].x) && (y === next[i].y));
+                if (!found) {
+                    i++;
+                }
+            }
+            if (found) {
+                return i;
+            }
+            return -1;
+        }
+        var iter = 0;
+
+        var startFill = function(x, y) {
+            next.push(new Point(x, y));
+            while (next.length > 0) {
+                var curr = next.pop();
+                x = curr.x;
+                y = curr.y;
+                if (!boundaryAt(x, y)) {
+                    boundary_map[x + (y * width)] = true;
+                    setImgPixelAt(img, x + min.x, y + min.y, color);
+                    iter++;
+                    if (!boundaryAt(x + 1, y)) {
+                        if (indexOf(x + 1, y) === -1) {
+                            next.push(new Point(x + 1, y));
+                        }
+                    }
+                    if (!boundaryAt(x, y + 1)) {
+                        if (indexOf(x, y + 1) === -1) {
+                            next.push(new Point(x, y + 1));
+                        }
+                    }
+                    if (!boundaryAt(x - 1, y)) {
+                        if (indexOf(x - 1, y) === -1) {
+                            next.push(new Point(x - 1, y));
+                        }
+                    }
+                    if (!boundaryAt(x, y - 1)) {
+                        if (indexOf(x, y - 1) === -1) {
+                            next.push(new Point(x, y - 1));
+                        }
+                    }
+                }
+            }
+        }
+        
+        startFill(x, y);
+        for (var i = 0; i < boundary.trace.length; i++) {
+            setImgPixelAt(img, boundary.trace[i].x, boundary.trace[i].y, color);
+        }
+        // while ((x != -1) && (y != -1)) {
+        //     if (!boundaryAt(x, y)) {
+        //         boundary_map[x + (y * width)] = true;
+        //         setImgPixelAt(img, x + min.x, y + min.y, color);
+        //     }
+        //     if (!boundaryAt(x + 1, y)) {
+        //         x += 1;
+        //     } else if (!boundaryAt(x, y + 1)) {
+        //         y += 1;
+        //     } else if (!boundaryAt(x - 1, y)) {
+        //         x -= 1;
+        //     } else if (!boundaryAt(x, y - 1)) {
+        //         y -= 1;
+        //     } else {
+        //         setImgPixelAt(img, x + min.x, y + min.y, new Color(0, 0, 255, 255));
+        //         x = -1;
+        //         y = -1;
+        //     }
+        // }
+        // for (var y = 0; y < height; y++) {
+        //     var filling = false;
+        //     var last = false;
+        //     var last2 = false;
+        //     var count = 0;
+        //     for (var x = 0; x < width; x++) {
+        //         var curr = boundary_map[x + (y * width)];
+        //         if ((curr) && (!last)) {
+        //             count++;
+        //         }
+        //         last = curr;
+        //     }
+        //     console.log(y, count);
+        //     var last = false;
+        //     var elapsed = 0;
+        //     for (var x = 0; x < width; x++) {
+        //         var current = boundary_map[x + (y * width)];
+        //         if (current != last) {
+        //             if (current) {
+        //                 filling = !filling;
+        //                 elapsed++;
+        //             } else if ((!current) && (last2)) {
+        //                 if ((elapsed % 2 == 1) && ((count - elapsed % 2 == 1))) {
+        //                     filling = true;
+        //                 } else {
+        //                     filling = false;
+        //                 }
+        //             }
+        //         } else {
+        //             if (current) {
+        //                 filling = false;
+        //             }
+        //         }
+        //         if ((filling) || (current)) {
+        //             setImgPixelAt(img, x + min.x, y + min.y, color);
+        //         }
+        //         last2 = last;
+        //         last = current;
+        //     }
+        // }
+        return img;
+    }
 
     var matchAll = function(code, maxerror=-1) {
         /* return all name of preset that matches the code with maximum number of error <= maxerror.
