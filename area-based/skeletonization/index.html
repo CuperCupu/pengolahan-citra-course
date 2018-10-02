@@ -298,7 +298,7 @@
         ctx.imageSmoothingEnabled = false;
         ctx.putImageData(image, 0, 0);
         
-        image_after = skeletonizeImage(imageProcess);
+        image_after = postprocessImage(skeletonizeImage(imageProcess));
         ctx2.putImageData(image_after, 0, 0);
         var result = detectAll(image);
         if (result) {
@@ -692,6 +692,7 @@
         var firstStep = false;
         var hasChanged;
         do {    // repeatly checking for reomving side to get the skeleton
+            console.log(img.data);
             hasChanged = false;
             firstStep = !firstStep;
             for (var i = 0; i < img.data.length; i += 4) {
@@ -782,6 +783,129 @@
             }
         }
         return count > 1;
+    }
+
+    var boldNeighbours = [[[1,1],[1,0]],[[1,1],[0,1]],[[-1,1],[-1,0]],[[-1,1],[0,1]],[[-1,-1],[-1,0]],[[-1,-1],[0,-1]],[[1,-1],[1,0]],[[1,-1],[0,-1]]]
+    var endPoints = []
+    var crucialPoints = []
+    function delBoldNeighbours(img, idx){
+        var triplePoint = true
+        var tempRow = Math.floor(idx / img.width / 4);
+        var tempCol = Math.floor((idx % (img.width * 4) / 4));
+        for (i = 0; i < boldNeighbours.length; i++){
+            temp1 = ((tempRow + boldNeighbours[i][0][1]) * img.width * 4)+ ((tempCol + boldNeighbours[i][0][0]) * 4)
+            temp2 = ((tempRow + boldNeighbours[i][1][1]) * img.width * 4)+ ((tempCol + boldNeighbours[i][1][0]) * 4)
+            if (img.data[temp1] == 255 && img.data[temp2] == 255 && !(crucialPoints.includes(temp2))){
+                img.data[temp2] = 0
+                img.data[temp2 + 1] = 0
+                img.data[temp2 + 2] = 0
+            }
+        }
+    }
+    function findCrucialPoints (img){
+        crucialPoints = []
+        for (var i = 0; i < img.data.length; i += 4){
+            if (nTransition(img, i) > 2 && img.data[i] == 255){
+                crucialPoints.push(i)
+            }
+        }
+    }
+    var triplePoints = []
+    function findTriplePoints (img){
+        for (var i = 0; i < img.data.length; i += 4){
+            if (nTransition(img, i) == 3 && img.data[i] == 255 && nNeighbours(img, i) == 3){
+                triplePoints.push(i)
+            }
+        }
+    }
+    function postprocessImage(img){
+        endPoints = []
+        findCrucialPoints(img)
+        console.log(triplePoints)
+        for (var i = 0; i < img.data.length; i += 4) {
+            if (img.data[i] == 255){
+                var num = nNeighbours(img, i)
+                if (num == 1) {         // Found end points
+                    endPoints.push(i)
+                }
+                else if (num == 2){     // Ordinary connected pixel
+                    // do nothing
+                }
+                else{     // Found multiple points
+                    delBoldNeighbours(img, i)
+                }
+            }
+        }
+        triplePoints = []
+        findTriplePoints(img)
+        imgNew = removeFakeLines(img)
+        return imgNew
+        //return img
+    }
+    function diagonalLength(A, B, img){
+        xA = Math.floor((A % (img.width * 4) / 4));
+        yA = Math.floor(A / img.width / 4);
+        xB = Math.floor((B % (img.width * 4) / 4));
+        yB = Math.floor(B / img.width / 4);
+
+        return Math.sqrt(((xA - xB) * (xA - xB)) + ((yA - yB) * (yA - yB)))
+    }
+
+    function removeFakeLines(img){
+        suspectValue = []
+        for (var i = 0; i < triplePoints.length; i++){
+            var len = diagonalLength(triplePoints[i], endPoints[0], img)
+            suspectValueN = endPoints[0];
+            for (var j = 0; j < endPoints.length; j++){
+                if (diagonalLength(triplePoints[i], endPoints[j], img) < len){
+                    len = diagonalLength(triplePoints[i], endPoints[j], img)
+                    suspectValueN = endPoints[j]
+                }
+            }
+            suspectValue.push(suspectValueN)
+        }
+
+        for (var i = 0; i < triplePoints.length; i++){
+            var tempPointer = []
+            pointer = triplePoints[i]
+            if (endPoints.length != 0){
+                while (pointer != suspectValue[i] && !crucialPoints.includes(suspectValue[i])){
+                    tempPoint = []
+                    change = false
+                    var tempRow = Math.floor(pointer / img.width / 4);
+                    var tempCol = Math.floor((pointer % (img.width * 4) / 4));
+                    for (var j = 0; j < neighbours.length; j++) {
+                        temp = ((tempRow + neighbours[j][1]) * img.width * 4)+ ((tempCol + neighbours[j][0]) * 4);
+                        if (img.data[temp] == 255){
+                            tempPoint.push(temp)
+                        }   
+                    }
+                    len = diagonalLength(pointer, suspectValue[i], img)
+                    for (var j = 0; j < tempPoint.length; j++){
+                        if (diagonalLength(tempPoint[j], suspectValue[i], img) < len){
+                            len = diagonalLength(tempPoint[j], suspectValue[i], img);
+                            pointer = tempPoint[j];
+                            change = true
+                            tempPointer.push(pointer)
+                        }
+                    }
+                    if (change){
+                        img.data[pointer] = 250;
+                        img.data[pointer + 1] = 0;
+                        img.data[pointer + 2] = 0;
+                    }
+                    else{
+                        for (var j = 0; j < tempPointer.length; j++){
+                            img.data[tempPointer[j]] = 255;
+                            img.data[tempPointer[j] + 1] = 255;
+                            img.data[tempPointer[j] + 2] = 255;
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+        return img
     }
 
     $(document).ready(function() {
