@@ -6,12 +6,11 @@
     <meta name="author" content="Suhendi">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Image Processor</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
-    <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.2/Chart.bundle.min.js"></script>
-    <script src="exif.js"></script>
+    <link rel="stylesheet" href="../../bootstrap.min.css">
+    <script src="../../jquery-3.3.1.min.js"></script>
+    <script src="../../popper.min.js"></script>
+    <script src="../../bootstrap.min.js"></script>
+    <script src="../../exif.js"></script>
     <link rel="icon" href="/icon.png" type="image/png"/>
     <link rel="shortcut icon" href="/icon.png" type="image/png"/>
 <style>
@@ -42,7 +41,7 @@
         <div class="row d-flex ml-1 mr-1">
             <div class="col-12">
                 <div class="col-lg-6 col-md-8 col-12 mx-auto">
-                    <div id="snapshot" class="row d-flex mt-1">
+                    <div id="snapshot" class="row d-none mt-1">
                         <button class="col btn btn-dark" id="webcam_start" onclick="startWebcam(); $('#webcam_start').addClass('d-none');">Start Webcam</button> 
                         <div id="webcam_control" class="col d-none" style="padding: 0;">
                             <button class="col btn btn-dark mr-1 mt-1" id="webcam_snapshot" onclick="snapshot();">Take Snapshot</button> 
@@ -299,24 +298,260 @@
         ctx.putImageData(image, 0, 0);
         
         image_after = postprocessImage(skeletonizeImage(imageProcess));
+        img_info = {
+            image: image_after,
+            ends: [],
+            cross: []
+        }
+        findEndPoints(image_after);
+        for (var i in endPoints) {
+            var p = endPoints[i];
+            x = Math.floor((p % (image_after.width * 4) / 4));
+            y = Math.floor(p / image_after.width / 4);
+            img_info.ends.push({x: x, y: y})
+        }
+        findCrucialPoints(image_after);
+        for (var i in crucialPoints) {
+            var p = crucialPoints[i];
+            x = Math.floor((p % (image_after.width * 4) / 4));
+            y = Math.floor(p / image_after.width / 4);
+            img_info.cross.push({x: x, y: y})
+        }
+        var result = predictFromInfo(img_info);
+        $("#result").text(result);
         ctx2.putImageData(image_after, 0, 0);
-        var result = detectAll(image);
-        if (result) {
-            $("#result").text(result);
-        } else {
-            $("#result").text("No match");
+        // var result = detectOnce(image_after);
+        // if (result.name) {
+        //     $("#result").text(result.name);
+        // } else {
+        //     $("#result").text("No match");
+        // }
+    }
+
+    function findBound(img) {
+        var min = {
+            x: img.width,
+            y: img.height,
+        }
+        var max = {
+            x: 0,
+            y: 0,
+        }
+        for (var y = 0; y < img.height; y++) {
+            for (var x = 0; x < img.width; x++) {
+                var p = getImgPixelAt(img, x, y);
+                if (p.r > 0) {
+                    if (x < min.x) {
+                        min.x = x;
+                    }
+                    if (x > max.x) {
+                        max.x = x;
+                    }
+                    if (y < min.y) {
+                        min.y = y;
+                    }
+                    if (y > max.y) {
+                        max.y = y;
+                    }
+                }
+            }
+        }
+        return {
+            min: min,
+            max: max,
         }
     }
 
-    function loadPreset() {
-        $.ajax("preset.json", {
-            dataType: "json",
-            success: function(response) {
-                for (var i in response) {
-                    preset[i] = new ChainCode(response[i]);
+    function getOffsetFromCenter(x, y, center) {
+        off = {
+            x: 0,
+            y: 0,
+        }
+        if (x < center.x) {
+            off.x = -1;
+        } else if (x > center.x) {
+            off.x = 1;
+        }
+        if (y < center.y) {
+            off.y = -1;
+        } else if (y > center.y) {
+            off.y = 1;
+        }
+        return off;
+    }
+
+    function categorizeQuadrant(off) {
+        if ((off.x == 0) && (off.y == 0)) {
+            return 0;
+        } else if ((off.x == 1) && (off.y == 0)) {
+            return 1;
+        } else if ((off.x == 1) && (off.y == -1)) {
+            return 2;
+        } else if ((off.x == 0) && (off.y == -1)) {
+            return 3;
+        } else if ((off.x == -1) && (off.y == -1)) {
+            return 4;
+        } else if ((off.x == -1) && (off.y == 0)) {
+            return 5;
+        } else if ((off.x == -1) && (off.y == 1)) {
+            return 6;
+        } else if ((off.x == 0) && (off.y == 1)) {
+            return 7;
+        } else if ((off.x == 1) && (off.y == 1)) {
+            return 8;
+        }
+        return null;
+    }
+
+    function endPointDirection(x, y, image) {
+        var dir = 0;
+        var i = 1;
+        while (i < 9) {
+            var off = getOffset(i);
+            var c = getImgPixelAt(image, x + off.x, y + off.y);
+            if (c.r > 0) {
+                dir = i;
+                i = 9;
+            }
+            i++;
+        }
+        console.log(x, y, dir);
+        return offsetDir(dir, 4);
+    }
+
+    function predictFromInfo(info) {
+        // Prediction for 8, 0, 4 are easily determined.
+        if (info.cross.length == 2) {
+            return "8";
+        } else if ((info.cross.length == 0) && (info.ends.length == 0)) {
+            return "0";
+        } else if ((info.cross.length == 1) && (info.ends.length == 2)) {
+            return "4";
+        }
+        // Get the number of end point in specific quadrants.
+        var bound = findBound(info.image);
+        var center = {
+            x: (bound.max.x + bound.min.x) / 2,
+            y: (bound.max.y + bound.min.y) / 2
+        }
+        var quadrants = {};
+        for (var i = 0; i < 9; i++) {
+            quadrants[i] = 0;
+        }
+        for (var i in info.ends) {
+            let o = getOffsetFromCenter(info.ends[i].x, info.ends[i].y, center);
+            let q = categorizeQuadrant(o);
+            info.ends[i].offset = o;
+            info.ends[i].quadrant = q;
+            quadrants[q]++;
+        }
+        // Find the end points of the directions.
+        var directions = {};
+        for (var i = 0; i < 9; i++) {
+            directions[i] = 0;
+        }
+        for (var i in info.ends) {
+            let d = endPointDirection(info.ends[i].x, info.ends[i].y, info.image);
+            info.ends[i].direction = d;
+            directions[d]++;
+        }
+        // Match info with heuristic.
+        if (info.cross.length == 1) {
+            let top = quadrants[2] + quadrants[3] + quadrants[4];
+            let bottom = quadrants[6] + quadrants[7] + quadrants[8];
+            if ((top == 1) && (bottom == 0)) {
+                return "6";
+            } else if ((top == 0) && (bottom == 1)) {
+                return "9";
+            } 
+        } else if (info.cross.length == 0) {
+            if (info.ends.length == 2) {
+                if ((quadrants[3] == 1) && (quadrants[7] == 1)) {
+                    return "1";
+                } else if ((quadrants[4] == 1) && (quadrants[8] == 1)) {
+                    var left = directions[4] + directions[5] + directions[6] + directions[7];
+                    if ((left == 1) && (directions[1] == 1)) {
+                        return "2";
+                    } else {
+                        var upper_left = 0;
+                        var lower_left = 0;
+                        var lower_right = 0;
+                        for (var i in info.ends) {
+                            let d = info.ends[i].direction;
+                            let o = info.ends[i].offset;
+                            if ((d >= 4) && (d <= 6)) {
+                                if (o.y < 0) {
+                                    upper_left++;
+                                } else if (o.y > 0) {
+                                    lower_left++;
+                                }
+                            } else if (((d == 1) || (d == 7)) && (o.y > 0)) {
+                                lower_right++;
+                            }
+                        }
+                        if ((upper_left == 1) && (lower_right == 1)) {
+                            return "1";
+                        } else if ((upper_left == 1) && (lower_left == 1)) {
+                            return "7";
+                        }
+                        return "1";
+                    }
+                } else if ((quadrants[4] == 1) && ((quadrants[6] == 1) || (quadrants[7] == 1))) {
+                    var upper_left = 0;
+                    var lower_left = 0;
+                    var lower_straight_left = 0;
+                    for (var i in info.ends) {
+                        let d = info.ends[i].direction;
+                        let o = info.ends[i].offset;
+                        if ((d >= 4) && (d <= 6)) {
+                            if (o.y < 0) {
+                                upper_left++;
+                            } else if (o.y > 0) {
+                                if (d == 5) {
+                                    lower_straight_left++;
+                                }
+                                lower_left++;
+                            }
+                        }
+                    }
+                    if ((upper_left == 1) && (lower_straight_left == 1)) {
+                        return "1";
+                    } else if ((upper_left == 1) && (lower_left == 1)) {
+                        return "7";
+                    }
+                    return "3";
+                    // var diagonal_left = directions[6] + directions[7] + directions[5];
+                    // var left = directions[4] + directions[5] + directions[6];
+                    // if ((diagonal_left > 0) && (directions[5] > 0)) {
+                    //     return "1";
+                    // } else if (((left == 1) && (directions[7] == 1)) || ((left == 2) && (directions[6] == 1))) {
+                    //     return "7"
+                    // }
+                    // return "3";
+                } else if ((quadrants[2] == 1) && (quadrants[6] == 1)) {
+                    return "5";
                 }
             }
-        });
+        }
+        return "No Match";
+    }
+
+    function loadPreset() {
+        chaincodes = {
+            "0": "1111111111111181111181118181818818888878887878778877877878777787877777877778777777877777777787777777777778777777777777777777777776777777777777767777777767777767777767777767677777667767767676776667666666665656556565555655555565555545555554555545545545454444444434434433434343343343343333433333433343333333433333333333433333333333333334333333332333333333333333323333333333233333332333323333233332332333233232332322332232222222121212121112111112",
+            "1": "777677776777767776777678777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777733333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333334565655655655655655655565565556556665666656566565665656566566767676767676766762323232323232323232121212212121212221221222221112111211211121121121121121211222333233323333233332333",
+            "2": "8111111111811111181811811818181888888878878787787778777787777877777777776777776777767777677677667766767667667666666666666666666666666666666666566666666666666666666667666776777677677677767767776776777788881111111111111111111111111111111111111111111111111111111111111111111111111111111155555555555555555555555555555555555555555555555555555555555555555555555555555555444455656565655656565665656566565622121221212121212121212121121233323323332332333233233233323323222232222222222222222212222222222222122222222222222222223222232232232323223323323333233332333332333333333343333433334333433434434443444544544545545545455555545555555554",
+            "3": "1111111111111811111181111811818181818888818788787877887778777877778777777767776777677677676767766767567567656666677676766778788878787811188181888188888788878787877877787778777877778777786777776777767777677767767677676676766666666665665665656565555655555565555555655554555555545555554555545454545454444543444434443443344333332223232223776666776667778787878788887888888188818818181811118111111811111118111121111111211111121112112122122122122222223223223232323233233323333233332333332433334333343334333433343343434434444345444454544545543434344434465555555555555566566665666666656766623222222222212222121211111111111111222323232323212222222232232323232332332333233323333333433334333433434334344344444444545454554545555455555545555555555555",
+            "4": "7776777677767776777678887777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777781111111111111111111111111115555555555555555555555555556777777777777777777777777777777777777777333333333333333333333333333333333333333455555555555555555555555555555555555555555555555555555555555555555555555555555555555554333233323332333233323332332333232232232232232232232232223232232223223223222322323223222322322322322321211212121121211212121121212223332333233323332333",
+            "5": "1111111111111111111111111111111111111111111111111111111111111111111155555555555555555555555555555555555555555555555555555555555555555555",
+            "6": "11111111111111181111181811181818881888788878778876666623222244334434444444454455455454555554555555555555555",
+            "7": "65565565565567776776777677767776776777677776766676766767667666767667766767676767676767667676776767677677677676767767677677677767767767767767776777767777677677776777777767776777777777767776566656222212233233333333332333233333332333323323333233332333233233233233233323323323233232332323323323323232323223323232232323232323232232232322322232322322333323332332333233323332332333455555555555555555555555555555555555555555555555555555555555555555555555555555555555555555511111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111112112112112",
+            "8": "11111111111118111111181181118181818818888887887878787778777877777876777767777677677767766776667666656666767676766688878788781818818888888878878787878777877778777787777877767777776777767777676776767667666766666566656565655655655555655555555654555555554555555455455454545454445444434434443343433434333343333433333333333323333233332333233322332232322223212212222232322322344434343434445444444334533433433343334333343333333333233332333233232232322221221221212111211121111112",
+            "9": "111111111111118111118118118118818818888888887878788787787877787877777877777877777787777777787777777778777777777778877777777777677777777777767777777776777777767777677767776777667767767676776667667666666566656566555655655555655555565555555545555545555455454544544444434344334337787788788788818881881811811118111118111111112111111211111211211212122122222222223222323232323323322333323323332333323333333233333333323333333333332333333333334466656656656565655656556555655666565656556555655556555556555545555554545455454454444444434434343433434333344333334333334333333343233333332333332333332233332323323232322232222122122121212111121111112"
+        }
+        for (var i in chaincodes) {
+            preset[i] = new ChainCode(chaincodes[i]);
+        }
     }
 
     function preprocessImage(img) {
@@ -689,12 +924,11 @@
     var neighboursGroup = [[[0, 2, 4], [2, 4, 6]], [[0, 2, 6], [0, 4, 6]]];
     var toBlack = new Array();
     function skeletonizeImage(img) {
-        var firstStep = false;
+        var firstStep = 0;
         var hasChanged;
         do {    // repeatly checking for reomving side to get the skeleton
-            console.log(img.data);
             hasChanged = false;
-            firstStep = !firstStep;
+            firstStep = (firstStep + 1) % neighboursGroup.length;
             for (var i = 0; i < img.data.length; i += 4) {
                 if (img.data[i] != 255)
                     continue;
@@ -703,7 +937,7 @@
                     continue;
                 if (nTransition(img, i) != 1)
                     continue;
-                if (!atLeastOneBlack(img, i, firstStep ?0 :1))
+                if (!atLeastOneBlack(img, i, firstStep))
                     continue;
                 toBlack.push(i);
                 hasChanged = true;
@@ -810,6 +1044,17 @@
             }
         }
     }
+    function findEndPoints(img) {
+        endPoints = []
+        for (var i = 0; i < img.data.length; i += 4) {
+            if (img.data[i] == 255){
+                var num = nNeighbours(img, i)
+                if (num == 1) {         // Found end points
+                    endPoints.push(i)
+                }
+            }
+        }
+    }
     var triplePoints = []
     function findTriplePoints (img){
         for (var i = 0; i < img.data.length; i += 4){
@@ -821,7 +1066,6 @@
     function postprocessImage(img){
         endPoints = []
         findCrucialPoints(img)
-        console.log(triplePoints)
         for (var i = 0; i < img.data.length; i += 4) {
             if (img.data[i] == 255){
                 var num = nNeighbours(img, i)
@@ -890,7 +1134,15 @@
                         }
                     }
                     if (change){
-                        img.data[pointer] = 250;
+                        var index = crucialPoints.indexOf(pointer);
+                        if (index > -1) {
+                            crucialPoints.splice(index, 1);
+                        }
+                        index = endPoints.indexOf(pointer);
+                        if (index > -1) {
+                            endPoints.splice(index, 1);
+                        }
+                        img.data[pointer] = 0;
                         img.data[pointer + 1] = 0;
                         img.data[pointer + 2] = 0;
                     }

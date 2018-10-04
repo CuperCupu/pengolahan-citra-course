@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<!-- saved from url=(0038)http://localhost:8080/attendance/index -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <link rel="stylesheet" href="./KMB ITB_files/bootstrap.min.css">
+<script src="./KMB ITB_files/jquery.min.js"></script>
+<script src="./KMB ITB_files/popper.min.js"></script>
+<script src="./KMB ITB_files/bootstrap.min.js"></script>
+<link rel="stylesheet" href="./KMB ITB_files/styles.css">
+<link rel="icon" href="http://localhost:8080/attendance/assets/icon.png" type="image/png">
+<link rel="shortcut icon" href="http://localhost:8080/attendance/assets/icon.png" type="image/png">
+</head><body><nav class="navbar navbar-expand-sm navbar-light bg-light sticky-top">
+    <a class="navbar-brand text-link" href="http://localhost:8080/attendance/index">KMB ITB</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav mr-auto">
+        <li class="nav-item">
+                    <a class="nav-link" href="http://localhost:8080/attendance/new_event">New Event<span class="sr-only">(current)</span></a>
+                </li><li class="nav-item">
+                        <a class="nav-link" href="http://localhost:8080/attendance/activate">Activate <span class="sr-only">(current)</span></a>
+                    </li><a class="nav-link" href="http://localhost:8080/attendance/logout">Log out</a>        
+        </ul>
+    </div>
+</nav>
+    <script src="./KMB ITB_files/pagination.js"></script>
+    <script src="./KMB ITB_files/events_loader.js"></script>
+    <script type="text/javascript">$(document).ready(function() {
+        initialize_pagination("#page-numbers", 1, 1);
+        load_events("#events-container",10, 10 * (1 - 1));
+    })</script>    <title>KMB ITB</title>
+    <!-- <script src="js/events_scroll_load.js"></script> -->
+
+
+    <div class="container mt-3">
+        <nav aria-label="Page navigation example">
+            <ul id="page-numbers" class="pagination justify-content-center">
+            <li class="page-item disabled">
+            <a class="page-link" aria-label="Previous">
+                <span>Prev</span>
+            </a>
+        </li><li class="page-item active"><a class="page-link" href="http://localhost:8080/attendance/index?page=1">1</a></li><li class="page-item disabled">
+            <a class="page-link" aria-label="Next">
+                <span>Next</span>
+            </a>
+        </li></ul>
+        </nav>
+        <div id="events-container"><div id="card-event-42" class="card panel-width-800px">
+        <div class="card-title event-title-bar ">
+            <span class="event-name"> AA </span>
+            <span class="event-date"> · 30th September 2018 </span>
+            
+            <div class="card-buttons">
+        <a href="http://localhost:8080/attendance/edit_event?id=42">
+            <button class="btn btn-primary">Edit</button>
+        </a>
+        <a href="http://localhost:8080/attendance/form?id=42">
+            <button class="btn btn-primary">Form</button>
+        </a>
+        <a href="http://localhost:8080/attendance/delete_event?id=42">
+            <button class="btn btn-danger">Delete</button>
+        </a>
+        
+        </div>
+        </div>
+        <div class="card-content"> asd </div>
+        <div class="card-footer collapse">
+            <div class="content">
+            </div>
+        </div>
+    </div><div id="card-event-43" class="card panel-width-800px">
+        <div class="card-title event-title-bar ">
+            <span class="event-name"> AAAA </span>
+            <span class="event-date"> · 30th September 2018 </span>
+            
+            <div class="card-buttons">
+        <a href="http://localhost:8080/attendance/edit_event?id=43">
+            <button class="btn btn-primary">Edit</button>
+        </a>
+        <a href="http://localhost:8080/attendance/form?id=43">
+            <button class="btn btn-primary">Form</button>
+        </a>
+        <a href="http://localhost:8080/attendance/delete_event?id=43">
+            <button class="btn btn-danger">Delete</button>
+        </a>
+        
+        </div>
+        </div>
+        <div class="card-content"> 1231231 </div>
+        <div class="card-footer collapse">
+            <div class="content">
+            </div>
+        </div>
+    </div><div id="card-event-38" class="card panel-width-800px">
+        <div class="card-title event-title-bar  active">
+            <span class="event-name"> Something something </span>
+            <span class="event-date"> · 15th September 2018 </span>
+            <span class="event-attendance float-right" data-toggle="tooltip" data-placement="top" title="" data-original-title="1 person attended this event"> 1 </span>
+            <div class="card-buttons">
+        <a href="http://localhost:8080/attendance/edit_event?id=38">
+            <button class="btn btn-primary">Edit</button>
+        </a>
+        <a href="http://localhost:8080/attendance/form?id=38">
+            <button class="btn btn-primary">Form</button>
+        </a>
+        <a href="http://localhost:8080/attendance/delete_event?id=38">
+            <button class="btn btn-danger">Delete</button>
+        </a>
+        <span class="pointer float-right" style="">▼</span>
+        </div>
+        </div>
+        <div class="card-content"> dis is something </div>
+        <div class="card-footer collapse show" style="">
+            <div class="content"><div class="card-item">
+        30th September 2018 13516048 Suhendi 2016 Teknik Informatika
+    </div><div class="card-item">
+        29th September 2018 13516048 Suhendi 2016 Teknik Informatika
+    </div></div>
+        </div>
+    </div></div>
+        <!-- <div id="white-space"></div> -->
+    </div>
+
+</body></html>
