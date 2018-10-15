@@ -6,21 +6,12 @@
     <meta name="author" content="Suhendi">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Image Processor</title>
-    <link rel="stylesheet" href="../../bootstrap.min.css">
-    <script src="../../jquery-3.3.1.min.js"></script>
-    <script src="../../popper.min.js"></script>
-    <script src="../../bootstrap.min.js"></script>
-    <script src="../../exif.js"></script>
-    <link rel="icon" href="/icon.png" type="image/png"/>
-    <link rel="shortcut icon" href="/icon.png" type="image/png"/>
+    <link rel="stylesheet" href="../../css/bootstrap.min.css">
+    <script src="../../jslib/jquery-3.3.1.min.js"></script>
+    <script src="../../jslib/popper.min.js"></script>
+    <script src="../../jslib/bootstrap.min.js"></script>
+    <script src="../../jslib/exif.js"></script>
 <style>
-/* @media screen and (min-width: 600px) and (orientation:portrait) {
-     
-    :root {
-        font-size: 32px;
-    }
-
-} */
 .btn {
     white-space:normal !important;
     word-wrap: break-word;
@@ -420,11 +411,12 @@
 
     function predictFromInfo(info) {
         // Prediction for 8, 0, 4 are easily determined.
+        console.log(info);
         if ((info.cross.length == 2) && (info.ends.length == 0)) {
             return "8";
         } else if ((info.cross.length == 0) && (info.ends.length == 0)) {
             return "0";
-        } else if ((info.cross.length == 1) && (info.ends.length == 2)) {
+        } else if ((info.cross.length == 1) && ((info.ends.length == 2) || (info.ends.length == 4))) {
             return "4";
         }
         // Get the number of end point in specific quadrants.
