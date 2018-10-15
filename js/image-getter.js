@@ -148,3 +148,23 @@ function load_image_file(img_url) {
     } catch(err) {
     }
 }
+
+var getImgPixelAt = function(img, x, y) {
+    let offset = (x + y * img.width)  * 4;
+    if ((offset < 0) || (offset > img.data.length)) {
+        return null;
+    }
+    return new Color(img.data[offset], img.data[offset + 1], img.data[offset + 2], img.data[offset + 3]);
+}
+
+var setImgPixelAt = function(img, x, y, color) {
+    let offset = (x + y * img.width)  * 4;
+    if ((offset < 0) || (offset > img.data.length)) {
+        return false;
+    }
+    img.data[offset] = color.r;
+    img.data[offset + 1] = color.g;
+    img.data[offset + 2] = color.b;
+    img.data[offset + 3] = color.a;
+    return true;
+}
