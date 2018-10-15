@@ -1,5 +1,3 @@
-
-
 function setContrast(distance, exp=1) {
     try {
         if (counts) {
@@ -10,7 +8,7 @@ function setContrast(distance, exp=1) {
                 total += i * counts[3][i];
             }
             var center = Math.round(total / sum);
-            contrastStretch(0, 255, center - distance / 2, center + distance / 2, exp);
+            return contrastStretch(0, 255, center - distance / 2, center + distance / 2, exp);
         }
     } catch(err) {
         alert("contrast stretch: " + err.message);

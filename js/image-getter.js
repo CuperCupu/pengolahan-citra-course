@@ -6,6 +6,7 @@ navigator.getUserMedia = ( navigator.getUserMedia ||
 var video;
 var webcamStream;
 var image;
+var image_default;
 var counts;
 Math.clamp=function(a,b,c){return Math.max(b,Math.min(c,a));}
 
@@ -131,6 +132,7 @@ function load_image_file(img_url) {
             ctx.rotate(-rotation);
             ctx.drawImage(this, -height/2, -width/2, height, width);
             ctx.restore();
+            image_default = ctx.getImageData(0, 0, canvas.width, canvas.height);
             image = ctx.getImageData(0, 0, canvas.width, canvas.height);
             ctx2.putImageData(image, 0, 0);
             counts = countPixels(image);

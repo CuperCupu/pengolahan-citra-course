@@ -1,6 +1,5 @@
-var color_chart;
 var ctx3;
-
+var color_chart;
 var ctx4;
 var spec_chart;
 
@@ -161,7 +160,8 @@ function resetPixels() {
                 color_chart.data.datasets[i].data = counts[i];
             }
             color_chart.update();
-            ctx2.putImageData(image, 0, 0);
+            ctx2.putImageData(image_default, 0, 0);
+            image.data.set(image_default.data);
         } else {
             alert("Please upload an image or take a picture with camera.")
         }

@@ -1,9 +1,10 @@
 $(document).ready(function() {
     
     $('.control-container >  button').click(function(e) {
-        $('#controls .collapse').collapse('hide');
-        let id = '#' + $(e.target).attr('target');
-        $(id).collapse('show');
+        // $('#controls .collapse').collapse('hide');
+        let curr = $(this).parent();
+        curr.parent().find(".collapse").collapse('hide');
+        curr.find(".collapse").collapse('show');
     });
 
     // Reset
@@ -14,12 +15,12 @@ $(document).ready(function() {
 
     // Equalize
     $('#button-equalize').click(function() {
-        equalizePixels();
+        image = equalizePixels();
     });
 
     // Specification
     $('#button-spec').click(function() {
-        setHistSpecification();
+        image = setHistSpecification();
     });
 
     $('#button-spec-image').click(function() {

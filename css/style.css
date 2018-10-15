@@ -7,6 +7,13 @@
 .control-container > button {
     border-radius: 0;
     margin: 0;
+    background-color: #596068;
+    border-color: #596068;
+}
+
+.control-container > button:hover {
+    background-color: #454b52;
+    border-color: #454b52;
 }
 
 .control-section {
@@ -21,6 +28,6 @@
 }
 
 .control-section button {
-    margin: 0.25rem 0.5rem 0.25rem 0.5rem;
-    width: calc(100% - 1rem);
+    margin: 0.25rem 0.25rem 0.25rem 0.25rem;
+    width: calc(100% - 0.5rem);
 }

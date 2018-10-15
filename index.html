@@ -55,39 +55,55 @@
                 </div>
                 <div id="controls" class="row collapse">
                     <div class="control-container col-12 mt-1">
-                        <button class="col-12 btn btn-dark" target="controls-default">Controls</button>
-                        <div id="controls-default" class="control-section collapse">
+                        <button class="col-12 btn btn-dark">Controls</button>
+                        <div class="control-section collapse">
                             <div class="container">
                                 <button id="button-reset" class="col btn btn-dark">Reset</button> 
-                                <button class="col btn btn-dark " onclick="setContrast(150)">Vivid</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="control-container col-12 mt-1">
+                        <button class="col-12 btn btn-dark">Miscellaneous</button>
+                        <div class="control-section collapse">
+                            <div class="container">
+                                <button class="col btn btn-dark" onclick="setContrast(150)">Vivid</button>
                                 <button class="col btn btn-dark" onclick="setContrast(255, 1.5)">High Contrast</button>
                             </div>
                         </div>
                     </div>
                     <div class="control-container col-12 mt-1">
-                        <button class="col-12 btn btn-dark" target="controls-equalization">Equalization</button>
-                        <div id="controls-equalization" class="control-section collapse">
+                        <button class="col-12 btn btn-dark">Equalization</button>
+                        <div class="control-section collapse">
                             <div class="container">
                                 <button id="button-equalize" class="col btn btn-dark">Equalize</button> 
+                                <button class="col btn btn-dark ml-1 mr-1 mt-1" onclick="equalizePixels(1.25);">Brighter</button> 
+                                <button class="col btn btn-dark ml-1 mr-1 mt-1" onclick="equalizePixels(0.75);">Darken</button> 
+                                <button class="col btn btn-dark ml-1 mr-1 mt-1" onclick="equalizePixels(0.85, 0, 0.5);">Reduce Contrast</button> 
+                                <button class="col btn btn-dark ml-1 mr-1 mt-1" onclick="equalizePixels(1.25, 0, 1.5);">Higher Contrast</button>
                             </div>
                         </div>
                     </div>
-                    <!-- <button class="col btn btn-dark ml-1 mr-1 mt-1" onclick="equalizePixels(1.25);">Brighter</button> 
-                    <button class="col btn btn-dark ml-1 mr-1 mt-1" onclick="equalizePixels(0.75);">Darken</button> 
-                    <button class="col btn btn-dark ml-1 mr-1 mt-1" onclick="equalizePixels(0.85, 0, 0.5);">Reduce Contrast</button> 
-                    <button class="col btn btn-dark ml-1 mr-1 mt-1" onclick="equalizePixels(1.25, 0, 1.5);">Higher Contrast</button> -->
                     <!-- <div class="col-12">Channels</div>
                     <button class="col btn btn-dark ml-1 mr-1 mt-1" onclick="setChannel(1, 0, 0)">Red</button>
                     <button class="col btn btn-dark ml-1 mr-1 mt-1" onclick="setChannel(0, 1, 0)">Green</button>
                     <button class="col btn btn-dark ml-1 mr-1 mt-1" onclick="setChannel(0, 0, 1)">Blue</button>
                     <button class="col btn btn-dark ml-1 mr-1 mt-1" onclick="setGrayscale();">Grayscale</button>  -->
                     <div class="control-container col-12 mt-1">
-                        <button class="col-12 btn btn-dark" target="controls-specification">Specification</button>
-                        <div id="controls-specification" class="control-section collapse">
+                        <button class="col-12 btn btn-dark">Specification</button>
+                        <div class="control-section collapse">
                             <div class="container">
                                 <button id="button-spec" class="col btn btn-dark">Specify</button>
                                 <button id="button-spec-image" class="col btn btn-dark">Use Image Specification</button>
                                 <button id="button-spec-custom" class="col btn btn-dark d-none">Use Custom Specification</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="control-container col-12 mt-1">
+                        <button class="col-12 btn btn-dark">Skeletonization</button>
+                        <div class="control-section collapse">
+                            <div class="container">
+                                <button id="button-skeleton-zhangsuen" class="col btn btn-dark">Zhang Suen</button>
+                                <button id="button-skeleton-postprocess" class="col btn btn-dark">Post Process</button>
                             </div>
                         </div>
                     </div>
