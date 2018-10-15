@@ -31,3 +31,15 @@
     margin: 0.25rem 0.25rem 0.25rem 0.25rem;
     width: calc(100% - 0.5rem);
 }
+
+.btn {
+    white-space:normal !important;
+    word-wrap: break-word;
+}
+
+.image-box {
+    margin: 1rem;
+    padding: 0;
+    box-shadow: 0 3px 10px 0 #00000022;
+    background-color: rgba(225, 225, 225, 1);
+}

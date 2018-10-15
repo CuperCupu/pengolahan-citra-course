@@ -153,6 +153,8 @@ function equalizePixels(mult=1, offset=0, exp=1) {
     }
 }
 
+var onReset = [];
+
 function resetPixels() {
     try {
         if (counts) {
@@ -162,6 +164,9 @@ function resetPixels() {
             color_chart.update();
             ctx2.putImageData(image_default, 0, 0);
             image.data.set(image_default.data);
+            for (var i in onReset) {
+                onReset[i]();
+            }
         } else {
             alert("Please upload an image or take a picture with camera.")
         }
