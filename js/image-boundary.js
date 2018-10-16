@@ -497,7 +497,7 @@ function findTurningPointsFromTrace2(boundary, threshold=0.1) {
     let tail = 0
     let shiftHead = function() {
         head = tail + 1;
-        while ((head < tail + threshold) && (head < length - 1)) {
+        while ((head < tail + threshold) && (head < length - 1) && (head > 0)) {
             let n = trace[head + 1];
             let p = trace[head - 1];
             if ((n.x == p.x) && (n.y == p.y)) {
@@ -506,9 +506,9 @@ function findTurningPointsFromTrace2(boundary, threshold=0.1) {
             head++;
         }
     }
-    let head = tail + threshold;
+    shiftHead();
     let s = []
-    while (head < length - 1) {
+    while ((head > 0) && (head < length - 1)) {
         let r_dist = realDistanceBetween(trace[tail], trace[head], trace);
         // let r_dist = threshold;
         let dist = distanceBetween(trace[tail], trace[head]);
@@ -518,7 +518,7 @@ function findTurningPointsFromTrace2(boundary, threshold=0.1) {
             turningPoints.push(j);
             tail = j + 1;
             shiftHead();
-        } else {
+        } else if (head > 0) {
             let n = trace[head + 1];
             let p = trace[head - 1];
             if ((n.x == p.x) && (n.y == p.y)) {

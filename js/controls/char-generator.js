@@ -24,6 +24,7 @@ $(document).ready(function() {
         let font = $(this).parent().find('.generator-font');
         let char = $(this).parent().find('.generator-char');
         image_default = generateCharacter(canvas, char.val(), font.val());
+        canvas2.height = canvas2.width;
         image = ctx.createImageData(image_default.width, image_default.height);
         image.data.set(image_default.data);
         ctx2.putImageData(image, 0, 0);

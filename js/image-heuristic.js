@@ -24,9 +24,12 @@ class CharacterHeuristic{
         }
         this.minRatio = data.minRatio;
         this.maxRatio = data.maxRatio;
+        this.custom = data.custom;
+        this.minLengthRatio = data.minLengthRatio;
+        this.maxLengthRatio = data.maxLengthRatio;
     }
 
-    match(ratio, endPoints, turningPoints, dots) {
+    match(ratio, endPoints, turningPoints, dots, code, trace) {
         // Test against ratio.
         if ((this.minRatio != null) && (ratio < this.minRatio)) {
             return false;
@@ -82,9 +85,9 @@ class CharacterHeuristic{
             if (rule.count != null) {
                 match = count == rule.count;
             } else if ((rule.minCount != null) && (rule.maxCount == null)) {
-                match = count >= ruleminCount;
+                match = count >= rule.minCount;
             } else if ((rule.minCount == null) && (rule.maxCount != null)) {
-                match = count >= rule.maxCount;
+                match = count <= rule.maxCount;
             } else if ((rule.minCount != null) && (rule.maxCount != null)) {
                 match = count >= rule.minCount && count <= rule.maxCount;
             } else {
@@ -106,15 +109,40 @@ class CharacterHeuristic{
             if (rule.count != null) {
                 match = count == rule.count;
             } else if ((rule.minCount != null) && (rule.maxCount == null)) {
-                match = count >= ruleminCount;
+                match = count >= rule.minCount;
             } else if ((rule.minCount == null) && (rule.maxCount != null)) {
-                match = count >= rule.maxCount;
+                match = count <= rule.maxCount;
             } else if ((rule.minCount != null) && (rule.maxCount != null)) {
                 match = count >= rule.minCount && count <= rule.maxCount;
             } else {
                 match = count > 0;
             }
             i++;
+        }
+
+        if ((match) && (endPoints.length == 2) && ((this.minLengthRatio != null) || (this.maxLengthRatio != null))) {
+            let dist = realDistanceBetween(endPoints[0].point, endPoints[1].point, trace);
+            let r_dist = distanceBetween(endPoints[0].point, endPoints[1].point);
+            let lengthRatio = dist / r_dist;
+            if ((this.minLengthRatio != null) && (this.maxLengthRatio == null)) {
+                match = lengthRatio >= this.minLengthRatio;
+            } else if ((this.minLengthRatio == null) && (this.maxLengthRatio != null)) {
+                match = lengthRatio <= this.maxLengthRatio;
+            } else if ((this.minLengthRatio != null) && (this.maxLengthRatio != null)) {
+                match = lengthRatio >= this.minLengthRatio && lengthRatio <= this.maxLengthRatio;
+            }
+            console.log(lengthRatio);
+        }
+
+        if ((match) && (this.custom != null)) {
+            match = this.custom({
+                ratio: ratio, 
+                endPoints: endPoints,
+                turningPoints: turningPoints,
+                dots: dots,
+                trace: trace,
+                code: code
+            })
         }
 
         return match;
@@ -170,12 +198,12 @@ CharacterHeuristic.matchDot = function(point, rule) {
 
 var character_heuristics = [];
 
-match_all_heuristics = function(ratio, endPoints, turningPoints, dots) {
+match_all_heuristics = function(ratio, endPoints, turningPoints, dots, code, trace) {
     let matched = [];
     for (var i in character_heuristics) {
         let h = character_heuristics[i];
         if (!matched.includes(h.name)) {
-            if (h.match(ratio, endPoints, turningPoints, dots)) {
+            if (h.match(ratio, endPoints, turningPoints, dots, code, trace)) {
                 matched.push(h.name);
             }
         }
@@ -207,12 +235,10 @@ match_all_heuristics_from_image = function(image) {
         return i;
     }
     let bound = findBound(image);
-    let width = (bound.max.x - bound.min.x);
-    let height = (bound.max.y - bound.min.y);
-    let ratio = height / width;
+    let ratio = bound.height / bound.width;
     let center = {
-        x: bound.min.x + (width / 2),
-        y: bound.min.y + (height / 2)
+        x: bound.min.x + (bound.width / 2),
+        y: bound.min.y + (bound.height / 2)
     }
     let endpoints = [];
     let e = findEndPoints(image);
@@ -245,6 +271,6 @@ match_all_heuristics_from_image = function(image) {
     console.log(endpoints);
     console.log(turningpoints);
     console.log(dots);
-    console.log(ratio, width, height);
-    return match_all_heuristics(ratio, endpoints, turningpoints, dots);
+    console.log(ratio);
+    return match_all_heuristics(ratio, endpoints, turningpoints, dots, b.code, b.trace);
 }

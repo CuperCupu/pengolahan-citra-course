@@ -8,25 +8,25 @@ character_heuristics.push(new CharacterHeuristic({
 // Number 1
 character_heuristics.push(new CharacterHeuristic({
     name: "1",
-    minRatio: 1.5,
+    minRatio: 70,
     endPointCount: 2,
     endPoints: [
         {
             count: 1,
             quadrants: [
-                2, 3, 4
+                3, 4
             ],
             direction: [
-                2, 3, 4
+                3
             ]
         },
         {
             count: 1,
             quadrants: [
-                6, 7, 8
+                6, 7
             ],
             direction: [
-                6, 7, 8
+                7
             ]
         }
     ],
@@ -128,12 +128,18 @@ character_heuristics.push(new CharacterHeuristic({
             quadrants: [
                 4
             ],
+            directions: [
+                4, 5, 6, 7
+            ]
         },
         {
             count: 1,
             quadrants: [
                 8
             ],
+            directions: [
+                8, 1, 2, 3, 4
+            ]
         },
     ],
     turningPoints: [
@@ -149,14 +155,27 @@ character_heuristics.push(new CharacterHeuristic({
             quadrants: [
                 4
             ]
-        }
+        },
+        {
+            minCount: 0,
+            maxCount: 1,
+            quadrants: [
+                8
+            ]
+        },
+        {
+            maxCount: 0,
+            quadrants: [
+                2
+            ]
+        },
     ]
 }));
 
 // Number 3
 character_heuristics.push(new CharacterHeuristic({
     name: "3",
-    endPointCount: 3,
+    minRatio: 1.4,
     endPoints: [
         {
             count: 1,
@@ -174,14 +193,27 @@ character_heuristics.push(new CharacterHeuristic({
             minCount: 0,
             maxCount: 1,
             grids: [
-                6, 7, 8,
-                10, 11, 12
+                6, 7,
+                10, 11,
+            ]
+        },
+        {
+            maxCount: 0,
+            grids: [
+                4
+            ]
+        },
+        {
+            maxCount: 0,
+            grids: [
+                16
             ]
         }
     ],
     turningPoints: [
         {
-            count: 1,
+            minCount: 0,
+            maxCount: 1,
             grids: [
                 5, 6, 7, 8, 9, 10, 11, 12
             ]
@@ -200,7 +232,8 @@ character_heuristics.push(new CharacterHeuristic({
                 6
             ]
         }
-    ]
+    ],
+    minLengthRatio: 2.2,
 }));
 
 // Number 4
@@ -215,7 +248,6 @@ character_heuristics.push(new CharacterHeuristic({
             ],
         },
     ],
-    turningPointCount: 3,
     turningPoints: [
         {
             count: 1,
@@ -223,6 +255,101 @@ character_heuristics.push(new CharacterHeuristic({
                 2
             ]
         },
+        {
+            minCount: 0,
+            maxCount: 1,
+            quadrants: [
+                4
+            ]
+        },
+        {
+            count: 1,
+            quadrants: [
+                6
+            ]
+        },
+        {
+            count: 1,
+            quadrants: [
+                8
+            ]
+        },
+    ]
+}));
+
+// Number 4
+character_heuristics.push(new CharacterHeuristic({
+    name: "4",
+    endPoints: [
+        {
+            count: 2,
+            quadrants: [
+                8
+            ],
+        },
+        {
+            minCount: 0,
+            maxCount: 1,
+            quadrants: [
+                6
+            ],
+        },
+    ],
+    turningPoints: [
+        {
+            count: 1,
+            quadrants: [
+                2
+            ]
+        },
+        {
+            minCount: 0,
+            maxCount: 1,
+            quadrants: [
+                4
+            ]
+        },
+        {
+            count: 1,
+            quadrants: [
+                6
+            ]
+        },
+        {
+            count: 2,
+            quadrants: [
+                8
+            ]
+        },
+    ]
+}));
+
+// Number 4
+character_heuristics.push(new CharacterHeuristic({
+    name: "4",
+    endPointCount: 4,
+    endPoints: [
+        {
+            count: 2,
+            quadrants: [
+                8
+            ],
+        },
+        {
+            count: 1,
+            grids: [
+                1, 2
+            ],
+        },
+        {
+            count: 1,
+            grids: [
+                3, 4
+            ],
+        },
+    ],
+    turningPointCount: 2,
+    turningPoints: [
         {
             count: 1,
             quadrants: [
@@ -326,6 +453,7 @@ character_heuristics.push(new CharacterHeuristic({
             ]
         }
     ],
+    turningPointCount: 1,
     turningPoints: [
         {
             count: 1,

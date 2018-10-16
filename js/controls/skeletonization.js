@@ -78,5 +78,12 @@ $(document).ready(function() {
         } else {
             $('#recognize-result').text('No match');
         }
+        let curr = $('#container-recognition');
+        let col = curr.find('.collapse');
+        if (!col.hasClass('show')) {
+            let button = curr.find('> button');
+            button.click();
+        }
+
     });
 });
