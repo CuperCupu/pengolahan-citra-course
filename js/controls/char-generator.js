@@ -33,5 +33,7 @@ $(document).ready(function() {
         for (var i in onReset) {
             onReset[i]();
         }
+        let button = $('#button-recognize');
+        button.click();
     });
 });

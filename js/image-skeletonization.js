@@ -256,6 +256,7 @@ function findCrucialPoints (img){
     }
     return crucialPoints
 }
+
 function findEndPoints(img) {
     var endPoints = []
     for (var i = 0; i < img.data.length; i += 4) {
@@ -270,6 +271,22 @@ function findEndPoints(img) {
         }
     }
     return endPoints;
+}
+
+function findDots(img) {
+    var dots = []
+    for (var i = 0; i < img.data.length; i += 4) {
+        if (img.data[i] == 255){
+            var num = nNeighbours(img, i)
+            if (num == 0) {
+                dots.push({
+                    x: Math.floor((i % (img.width * 4) / 4)),
+                    y: Math.floor(i / img.width / 4)
+                })
+            }
+        }
+    }
+    return dots;
 }
 
 function findEndPointsRaw(img) {

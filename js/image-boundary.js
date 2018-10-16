@@ -513,7 +513,7 @@ function findTurningPointsFromTrace2(boundary, threshold=0.1) {
         // let r_dist = threshold;
         let dist = distanceBetween(trace[tail], trace[head]);
         let ratio = r_dist / dist;
-        if ((ratio > 1.14) && (ratio < 2)) {
+        if ((ratio > 1.14) && (ratio < 20)) {
             let j = Math.round((head - tail) * (0.77)) + tail;
             turningPoints.push(j);
             tail = j + 1;

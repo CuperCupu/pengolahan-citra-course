@@ -15,11 +15,18 @@ class CharacterHeuristic{
             this.turningPoints = [];
             this.turningPointCount = 0;
         }
+        if (data.dots) {
+            this.dots = data.dots;
+            this.dotCount = data.dotCount;
+        } else {
+            this.dots = [];
+            this.dotCount = 0;
+        }
         this.minRatio = data.minRatio;
         this.maxRatio = data.maxRatio;
     }
 
-    match(ratio, endPoints, turningPoints) {
+    match(ratio, endPoints, turningPoints, dots) {
         // Test against ratio.
         if ((this.minRatio != null) && (ratio < this.minRatio)) {
             return false;
@@ -31,6 +38,9 @@ class CharacterHeuristic{
             return false;
         }
         if ((this.turningPointCount != null) && (turningPoints.length != this.turningPointCount)) {
+            return false;
+        }
+        if ((this.dotCount != null) && (dots.length != this.dotCount)) {
             return false;
         }
         // Test against end points.
@@ -82,6 +92,30 @@ class CharacterHeuristic{
             }
             i++;
         }
+        // Test against dots.
+        i = 0;
+        while ((match) && (i < this.dots.length)) {
+            let rule = this.dots[i];
+            let count = 0;
+            for (var j in dots) {
+                let p = dots[j];
+                if (CharacterHeuristic.matchDot(p, rule)) {
+                    count++;
+                }
+            }
+            if (rule.count != null) {
+                match = count == rule.count;
+            } else if ((rule.minCount != null) && (rule.maxCount == null)) {
+                match = count >= ruleminCount;
+            } else if ((rule.minCount == null) && (rule.maxCount != null)) {
+                match = count >= rule.maxCount;
+            } else if ((rule.minCount != null) && (rule.maxCount != null)) {
+                match = count >= rule.minCount && count <= rule.maxCount;
+            } else {
+                match = count > 0;
+            }
+            i++;
+        }
 
         return match;
     }
@@ -99,7 +133,7 @@ CharacterHeuristic.matchEndPoint = function(point, rule) {
         }
     }
     if (rule.grids) {
-        if (!rule.grids.includes(point.grid + 1)) {
+        if (!rule.grids.includes(point.grid)) {
             return false;
         }
     }
@@ -113,7 +147,21 @@ CharacterHeuristic.matchTurningPoint = function(point, rule) {
         }
     }
     if (rule.grids) {
-        if (!rule.grids.includes(point.grid + 1)) {
+        if (!rule.grids.includes(point.grid)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+CharacterHeuristic.matchDot = function(point, rule) {
+    if (rule.quadrants) {
+        if (!rule.quadrants.includes(point.quadrant)) {
+            return false;
+        }
+    }
+    if (rule.grids) {
+        if (!rule.grids.includes(point.grid)) {
             return false;
         }
     }
@@ -122,12 +170,12 @@ CharacterHeuristic.matchTurningPoint = function(point, rule) {
 
 var character_heuristics = [];
 
-match_all_heuristics = function(ratio, endPoints, turningPoints) {
+match_all_heuristics = function(ratio, endPoints, turningPoints, dots) {
     let matched = [];
     for (var i in character_heuristics) {
         let h = character_heuristics[i];
         if (!matched.includes(h.name)) {
-            if (h.match(ratio, endPoints, turningPoints)) {
+            if (h.match(ratio, endPoints, turningPoints, dots)) {
                 matched.push(h.name);
             }
         }
@@ -141,7 +189,7 @@ pointGrid = function(p, bound, gridSize = 4) {
     let space = 1 / gridSize;
     x = Math.floor(x / space);
     y = Math.floor(y / space)
-    return x + (y * gridSize);
+    return x + (y * gridSize) + 1;
 }
 
 match_all_heuristics_from_image = function(image) {
@@ -185,8 +233,18 @@ match_all_heuristics_from_image = function(image) {
             grid: pointGrid(b.trace[j], bound),
         });
     }
+    let d = findDots(image);
+    let dots = []
+    for (var i in d) {
+        dots.push({
+            point: d[i],
+            quadrant: categorizeQuadrant(getOffsetFromCenter(d[i].x, d[i].y, center)),
+            grid: pointGrid(d[i], bound),
+        });
+    }
     console.log(endpoints);
     console.log(turningpoints);
+    console.log(dots);
     console.log(ratio, width, height);
-    return match_all_heuristics(ratio, endpoints, turningpoints);
+    return match_all_heuristics(ratio, endpoints, turningpoints, dots);
 }
