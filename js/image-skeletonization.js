@@ -427,25 +427,47 @@ function removeFakeLines(img, endPoints, triplePoints, crucialPoints){
     return img
 }
 
-neighboursStraight = [[[1, -1], [1, 0], [1, 1]], [[1, 1], [0, 1], [-1, 1]], [[-1, 1], [-1, 0], [-1, -1]], [[-1, -1], [0, -1], [1, -1]]]
+neighboursStraight = [[[1, -1], [1, 0], [1, 1]], [[1, 1], [0, 1], [-1, 1]], [[-1, 1], [-1, 0], [-1, -1]], [[-1, -1], [0, -1], [1, -1]], [[0, 1], [1, 1], [1, 0]], [[1, 0], [1, -1], [0, -1]], [[0, -1], [-1, -1], [-1, 0]], [[-1, 0], [-1, 1], [0, 1]]]
 
-function checkTripleStraight(img, idx) {
-    var tempRow = Math.floor(idx / img.width / 4);
-    var tempCol = Math.floor((idx % (img.width * 4) / 4));
-    for (var i = 0; i < neighboursStraight.length; i++){
-        straight = true;
-        for (var j = 0; j < neighboursStraight[i].length; j++){
-            temp = ((tempRow + neighboursStraight[i][j][1]) * img.width * 4)+ ((tempCol + neighboursStraight[i][j][0]) * 4);
-            if (img.data[temp] == 255){
-                straight = false;
-                break;
-            }
-        }
-        if (straight)
-            break;
-    }
-    return straight;
-}
+// function checkTripleStraight(img, idx, turningPoints, endPoints, triplePoints) {
+//     let everyPoints = []
+//     var tempRow = Math.floor(idx / img.width / 4);
+//     var tempCol = Math.floor((idx % (img.width * 4) / 4));
+//     for (var i = 0; i < neighboursStraight.length; i++){
+//         straight = true;
+//         state = i;
+//         for (var j = 0; j < neighboursStraight[i].length; j++){
+//             temp = ((tempRow + neighboursStraight[i][j][1]) * img.width * 4)+ ((tempCol + neighboursStraight[i][j][0]) * 4);
+//             if (img.data[temp] == 255){
+//                 straight = false;
+//                 break;
+//             }
+//         }
+//         if (straight)
+//             break;
+//     }
+//     everyPoints.concat(turningPoints);
+//     everyPoints.concat(endPoints);
+//     everyPoints.concat(triplePoints);
+//     tempLength = diagonalLength(idx, everyPoints[0], img);
+//     suspect = 0;
+//     for (let i = 1; i < everyPoints.length; i++){
+//         if (tempLength > diagonalLength(idx, everyPoints[i], img), i++){
+//             tempLength = diagonalLength(idx, everyPoints[i], img);
+//             suspect = i;
+//         }
+//     }
+//     dir.push(neighboursStraight[state][0]);
+//     dir.push(neighboursStraight[state][1]);
+
+//     cond1 = 
+
+//     if (
+
+//     if (dir1 )
+
+//     return straight;
+// }
 
 function removeFakeLinesThreshold(img, endPoints, triplePoints, crucialPoints){
     let bound = findBound(img);
@@ -453,75 +475,84 @@ function removeFakeLinesThreshold(img, endPoints, triplePoints, crucialPoints){
     yBoundLength = bound.max.y - bound.min.y;
     rBoundLength = Math.sqrt(Math.pow(xBoundLength, 2) + Math.pow(yBoundLength, 2));
     // heuristicLength = Math.sqrt(Math.pow((findBound(img).max.y - findBound(img).min.y),2) + Math.pow((findBound(img).max.x - findBound(img).min.x),2))
-    // treshold = heuristicLength * 0.2
-    nPercent = 0.13
+    
+    thresholdChoice = rBoundLength * 0.2
+    console.log(thresholdChoice)
+    nPercent = 0.175
     var suspectValue = []
     for (var i = 0; i < triplePoints.length; i++){
-        var len = diagonalLength(triplePoints[i], endPoints[0], img)
-        suspectValueN = endPoints[0];
+        console.log(triplePoints)
+        let suspectValueN = []
+        // let len = diagonalLength(triplePoints[i], endPoints[0], img)
+        // suspectValueN = endPoints[0];
         for (var j = 0; j < endPoints.length; j++){
-            if (diagonalLength(triplePoints[i], endPoints[j], img) < len){
-                len = diagonalLength(triplePoints[i], endPoints[j], img)
-                suspectValueN = endPoints[j]
+            len = diagonalLength(triplePoints[i], endPoints[j], img)
+            console.log(triplePoints[i], len)
+            if (len <= thresholdChoice){
+                console.log(endPoints[j])
+                suspectValueN.push(endPoints[j])
             }
         }
         suspectValue.push(suspectValueN)
     }
+    
     for (var i = 0; i < triplePoints.length; i++){
-        idx = 0
-        var tempPointer = []
-        pointer = triplePoints[i]
-        sine = Math.abs(Math.floor((pointer % (img.width * 4) / 4) - Math.floor((suspectValue[i] % (img.width * 4) / 4)))) / diagonalLength(pointer, suspectValue[i], img);
-        if (sine <= 0.5) {
-            threshold = nPercent * yBoundLength;
-        }
-        else if (sine > 0.866) {
-            threshold = nPercent * xBoundLength;
-        }
-        else {
-            threshold = nPercent * rBoundLength;
-        }
-        if (endPoints.length != 0 && (diagonalLength(triplePoints[i], suspectValue[i], img) <= threshold) && !checkTripleStraight(img, triplePoints[i])){
-            while (pointer != suspectValue[i] && !crucialPoints.includes(suspectValue[i])){
-                tempPoint = []
-                change = false
-                var tempRow = Math.floor(pointer / img.width / 4);
-                var tempCol = Math.floor((pointer % (img.width * 4) / 4));
-                for (var j = 0; j < neighbours.length; j++) {
-                    temp = ((tempRow + neighbours[j][1]) * img.width * 4)+ ((tempCol + neighbours[j][0]) * 4);
-                    if (img.data[temp] == 255){
-                        tempPoint.push(temp)
-                    }   
-                }
-                len = diagonalLength(pointer, suspectValue[i], img)
-                for (var j = 0; j < tempPoint.length; j++){
-                    if (diagonalLength(tempPoint[j], suspectValue[i], img) < len){// && nNeighbours(img, temp[j+1]) == 2){
-                        len = diagonalLength(tempPoint[j], suspectValue[i], img);
-                        pointer = tempPoint[j];
-                        change = true
-                        tempPointer.push(pointer)
+        for (let k = 0; k < suspectValue.length; k++){
+            var tempPointer = []
+            pointer = triplePoints[i]
+            sine = Math.abs(Math.floor((pointer % (img.width * 4) / 4) - Math.floor((suspectValue[i][k] % (img.width * 4) / 4)))) / diagonalLength(pointer, suspectValue[i][k], img);
+            if (sine <= 0.5) {
+                threshold = nPercent * yBoundLength;
+            }
+            else if (sine > 0.866) {
+                threshold = nPercent * xBoundLength;
+            }
+            else {
+                threshold = nPercent * rBoundLength;
+            }
+            console.log(threshold)
+            if (endPoints.length != 0 && (diagonalLength(triplePoints[i], suspectValue[i][k], img) <= threshold)){//&& !checkTripleStraight(img, triplePoints[i])){
+                while (pointer != suspectValue[i][k] && !crucialPoints.includes(suspectValue[i][k])){
+                    tempPoint = []
+                    change = false
+                    var tempRow = Math.floor(pointer / img.width / 4);
+                    var tempCol = Math.floor((pointer % (img.width * 4) / 4));
+                    for (var j = 0; j < neighbours.length; j++) {
+                        temp = ((tempRow + neighbours[j][1]) * img.width * 4)+ ((tempCol + neighbours[j][0]) * 4);
+                        if (img.data[temp] == 255){
+                            tempPoint.push(temp)
+                        }   
                     }
-                }
-                if (change){
-                    var index = crucialPoints.indexOf(pointer);
-                    if (index > -1) {
-                        crucialPoints.splice(index, 1);
+                    len = diagonalLength(pointer, suspectValue[i][k], img)
+                    for (var j = 0; j < tempPoint.length; j++){
+                        if (diagonalLength(tempPoint[j], suspectValue[i][k], img) < len){// && nNeighbours(img, temp[j+1]) == 2){
+                            len = diagonalLength(tempPoint[j], suspectValue[i][k], img);
+                            pointer = tempPoint[j];
+                            change = true
+                            tempPointer.push(pointer)
+                        }
                     }
-                    index = endPoints.indexOf(pointer);
-                    if (index > -1) {
-                        endPoints.splice(index, 1);
+                    if (change){
+                        var index = crucialPoints.indexOf(pointer);
+                        if (index > -1) {
+                            crucialPoints.splice(index, 1);
+                        }
+                        index = endPoints.indexOf(pointer);
+                        if (index > -1) {
+                            endPoints.splice(index, 1);
+                        }
+                        img.data[pointer] = 0;
+                        img.data[pointer + 1] = 0;
+                        img.data[pointer + 2] = 0;
                     }
-                    img.data[pointer] = 0;
-                    img.data[pointer + 1] = 0;
-                    img.data[pointer + 2] = 0;
-                }
-                else{
-                    for (var j = 0; j < tempPointer.length; j++){
-                        img.data[tempPointer[j]] = 255;
-                        img.data[tempPointer[j] + 1] = 255;
-                        img.data[tempPointer[j] + 2] = 255;
+                    else{
+                        for (var j = 0; j < tempPointer.length; j++){
+                            img.data[tempPointer[j]] = 255;
+                            img.data[tempPointer[j] + 1] = 255;
+                            img.data[tempPointer[j] + 2] = 255;
+                        }
+                        break;
                     }
-                    break;
                 }
             }
         }
