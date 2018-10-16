@@ -35,7 +35,6 @@ $(document).ready(function() {
     // Specification
     $('#button-spec').click(function() {
         image = setHistSpecification();
-        
     });
 
     $('#button-spec-image').click(function() {
@@ -61,6 +60,26 @@ $(document).ready(function() {
 
     $('#button-misc-invert').click(function() {
         image = inverseColor();
+    });
+
+    // Channel
+    
+    // Red
+    $('#button-channel-red').click(function() {
+        image = setChannel(1, 0, 0);
+    });
+    // Green
+    $('#button-channel-green').click(function() {
+        image = setChannel(0, 1, 0);
+    });
+    // Bleu
+    $('#button-channel-blue').click(function() {
+        image = setChannel(0, 0, 1);
+    });
+
+    // Grayscale
+    $('#button-channel-grayscale').click(function() {
+        image = setGrayscale();
     });
 
 });
