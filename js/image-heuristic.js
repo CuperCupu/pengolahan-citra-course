@@ -46,6 +46,12 @@ class CharacterHeuristic{
             }
             if (rule.count != null) {
                 match = count == rule.count;
+            } else if ((rule.minCount != null) && (rule.maxCount == null)) {
+                match = count >= ruleminCount;
+            } else if ((rule.minCount == null) && (rule.maxCount != null)) {
+                match = count >= rule.maxCount;
+            } else if ((rule.minCount != null) && (rule.maxCount != null)) {
+                match = count >= rule.minCount && count <= rule.maxCount;
             } else {
                 match = count > 0;
             }
@@ -114,7 +120,7 @@ match_all_heuristics = function(ratio, endPoints, turningPoints) {
 
 match_all_heuristics_from_image = function(image) {
     var b = findBoundary(image);
-    var t = findTurningPointsFromTrace(b);
+    var t = findTurningPointsFromTrace2(b);
     s = t.sliced;
     if (s < 0) {
         s = 0;
