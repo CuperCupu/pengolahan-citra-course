@@ -235,7 +235,6 @@ findTurningPointsAll = function(b, threshold=0.1) {
     threshold = b.size.height * threshold;
     var t1 = findTurningPointsFromTrace(b);
     var t2 = findTurningPointsFromTrace2(b);
-    console.log(t1.sliced, t2.sliced);
     var turningPoints = t1.turningPoints.slice().concat(t2.turningPoints);
     // var turningPoints = t1.turningPoints.slice();
     var trace = b.trace;
@@ -302,7 +301,14 @@ findTurningPointsAll = function(b, threshold=0.1) {
             }
             let p = new Point(Math.round((trace[i1].x + trace[i2].x) / 2), Math.round((trace[i1].y + trace[i2].y) / 2));
             let idx = findNearest(p, trace);
-            turningPoints.push(idx);
+            if (idx > -1) {
+                if (t1.sliced > -1) {
+                    idx -= t1.sliced;
+                }
+                turningPoints.push(idx);
+            } else {
+                turningPoints.push(i1);
+            }
             changed = true;
         }
     } while (changed);
