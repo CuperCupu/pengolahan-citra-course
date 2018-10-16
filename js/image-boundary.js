@@ -348,7 +348,6 @@ function findTurningPointsFromChainCode(code, threshold=0.025) {
     };
 }
 
-
 function findTurningPointsFromTrace(boundary, threshold=0.03) {
     let trace = boundary.trace;
     let code = boundary.code;
@@ -478,4 +477,27 @@ function findTurningPointsFromTrace(boundary, threshold=0.03) {
         suspicious: s,
         sliced: slice
     };
+}
+
+function realDistanceBetween(p1, p2, traces) {
+    let p1s = [];
+    let p2s = [];
+    for (let i in traces) {
+        if ((traces[i].x == p1.x) && (traces[i].y == p1.y)) {
+            p1s.push(i);
+        }
+        if ((traces[i].x == p2.x) && (traces[i].y == p2.y)) {
+            p2s.push(i);
+        }
+    }
+    let dist = traces.length;
+    for (let i in p1s) {
+        for (let j in p2s) {
+            let d = Math.abs(p1s[i] - p2s[i]);
+            if (d < dist) {
+                dist = d;
+            }
+        }
+    }
+    return dist;
 }
