@@ -270,6 +270,19 @@ function findEndPoints(img) {
     return endPoints;
 }
 
+function findEndPointsRaw(img) {
+    var endPoints = []
+    for (var i = 0; i < img.data.length; i += 4) {
+        if (img.data[i] == 255){
+            var num = nNeighbours(img, i)
+            if (num == 1) {         // Found end points
+                endPoints.push(i);
+            }
+        }
+    }
+    return endPoints;
+}
+
 function findTriplePoints (img){
     var triplePoints = []
     for (var i = 0; i < img.data.length; i += 4){
@@ -436,9 +449,10 @@ function checkTripleStraight(img, idx) {
     return straight;
 }
 
-function removeFakeLinesTreshold(img, endPoints, triplePoints, crucialPoints){
-    xBoundLength = findBound(img).max.x - findBound(img).min.x;
-    yBoundLength = findBound(img).max.y - findBound(img).min.y;
+function removeFakeLinesThreshold(img, endPoints, triplePoints, crucialPoints){
+    let bound = findBound(img);
+    xBoundLength = bound.max.x - bound.min.x;
+    yBoundLength = bound.max.y - bound.min.y;
     rBoundLength = Math.sqrt(Math.pow(xBoundLength, 2) + Math.pow(yBoundLength, 2));
     // heuristicLength = Math.sqrt(Math.pow((findBound(img).max.y - findBound(img).min.y),2) + Math.pow((findBound(img).max.x - findBound(img).min.x),2))
     // treshold = heuristicLength * 0.2
@@ -460,7 +474,6 @@ function removeFakeLinesTreshold(img, endPoints, triplePoints, crucialPoints){
         var tempPointer = []
         pointer = triplePoints[i]
         sine = Math.abs(Math.floor((pointer % (img.width * 4) / 4) - Math.floor((suspectValue[i] % (img.width * 4) / 4)))) / diagonalLength(pointer, suspectValue[i], img);
-        console.log(sine)
         if (sine <= 0.5) {
             threshold = nPercent * yBoundLength;
         }
@@ -470,9 +483,6 @@ function removeFakeLinesTreshold(img, endPoints, triplePoints, crucialPoints){
         else {
             threshold = nPercent * rBoundLength;
         }
-        console.log(threshold)
-        console.log(diagonalLength(triplePoints[i], suspectValue[i], img))
-        console.log(checkTripleStraight(img, triplePoints[i]))
         if (endPoints.length != 0 && (diagonalLength(triplePoints[i], suspectValue[i], img) <= threshold) && !checkTripleStraight(img, triplePoints[i])){
             while (pointer != suspectValue[i] && !crucialPoints.includes(suspectValue[i])){
                 idx++;
