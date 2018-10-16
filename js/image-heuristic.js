@@ -33,6 +33,7 @@ class CharacterHeuristic{
         if ((this.turningPointCount != null) && (turningPoints.length != this.turningPointCount)) {
             return false;
         }
+        // Test against end points.
         let match = true;
         let i = 0;
         while ((match) && (i < this.endPoints.length)) {
@@ -47,9 +48,9 @@ class CharacterHeuristic{
             if (rule.count != null) {
                 match = count == rule.count;
             } else if ((rule.minCount != null) && (rule.maxCount == null)) {
-                match = count >= ruleminCount;
+                match = count >= rule.minCount;
             } else if ((rule.minCount == null) && (rule.maxCount != null)) {
-                match = count >= rule.maxCount;
+                match = count <= rule.maxCount;
             } else if ((rule.minCount != null) && (rule.maxCount != null)) {
                 match = count >= rule.minCount && count <= rule.maxCount;
             } else {
@@ -57,7 +58,7 @@ class CharacterHeuristic{
             }
             i++;
         }
-        match = true;
+        // Test against turning points.
         i = 0;
         while ((match) && (i < this.turningPoints.length)) {
             let rule = this.turningPoints[i];
@@ -70,6 +71,12 @@ class CharacterHeuristic{
             }
             if (rule.count != null) {
                 match = count == rule.count;
+            } else if ((rule.minCount != null) && (rule.maxCount == null)) {
+                match = count >= ruleminCount;
+            } else if ((rule.minCount == null) && (rule.maxCount != null)) {
+                match = count >= rule.maxCount;
+            } else if ((rule.minCount != null) && (rule.maxCount != null)) {
+                match = count >= rule.minCount && count <= rule.maxCount;
             } else {
                 match = count > 0;
             }
@@ -91,12 +98,22 @@ CharacterHeuristic.matchEndPoint = function(point, rule) {
             return false;
         }
     }
+    if (rule.grids) {
+        if (!rule.grids.includes(point.grid + 1)) {
+            return false;
+        }
+    }
     return true;
 }
 
 CharacterHeuristic.matchTurningPoint = function(point, rule) {
     if (rule.quadrants) {
         if (!rule.quadrants.includes(point.quadrant)) {
+            return false;
+        }
+    }
+    if (rule.grids) {
+        if (!rule.grids.includes(point.grid + 1)) {
             return false;
         }
     }
@@ -118,6 +135,15 @@ match_all_heuristics = function(ratio, endPoints, turningPoints) {
     return matched;
 }
 
+pointGrid = function(p, bound, gridSize = 4) {
+    let x = (p.x - bound.min.x) / bound.width;
+    let y = (p.y - bound.min.y) / bound.height;
+    let space = 1 / gridSize;
+    x = Math.floor(x / space);
+    y = Math.floor(y / space)
+    return x + (y * gridSize);
+}
+
 match_all_heuristics_from_image = function(image) {
     var b = findBoundary(image);
     var t = findTurningPointsFromTrace2(b);
@@ -127,8 +153,9 @@ match_all_heuristics_from_image = function(image) {
     }
     var translate_index = function(i, off, length) {
         if (off > -1) {
-            i = (i + off) % length;
+            i += off;
         }
+        i %= length;
         return i;
     }
     let bound = findBound(image);
@@ -145,7 +172,8 @@ match_all_heuristics_from_image = function(image) {
         endpoints.push({
             point: e[i],
             quadrant: categorizeQuadrant(getOffsetFromCenter(e[i].x, e[i].y, center)),
-            direction: endPointDirection(e[i].x, e[i].y, image)
+            direction: endPointDirection(e[i].x, e[i].y, image),
+            grid: pointGrid(e[i], bound),
         });
     }
     let turningpoints = [];
@@ -153,7 +181,8 @@ match_all_heuristics_from_image = function(image) {
         let j = translate_index(t.turningPoints[i], t.sliced, b.code.length);
         turningpoints.push({
             point: b.trace[j],
-            quadrant: categorizeQuadrant(getOffsetFromCenter(b.trace[j].x, b.trace[j].y, center))
+            quadrant: categorizeQuadrant(getOffsetFromCenter(b.trace[j].x, b.trace[j].y, center)),
+            grid: pointGrid(b.trace[j], bound),
         });
     }
     console.log(endpoints);

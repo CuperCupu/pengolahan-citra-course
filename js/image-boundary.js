@@ -367,6 +367,7 @@ function findTurningPointsFromTrace(boundary, threshold=0.03) {
     if (found) {
         trace = trace.slice(i).concat(trace.slice(0, i + threshold * 2));
     } else {
+        trace = trace.slice(0).concat(trace.slice(0, i + threshold * 2));
         i = -1;
     }
     length = trace.length;
@@ -380,15 +381,6 @@ function findTurningPointsFromTrace(boundary, threshold=0.03) {
     }
     var angleDelta = function(a1, a2) {
         return Math.min(Math.abs(a1 - a2), 360 - Math.abs(a1 - a2));
-    }
-    var angleDeltaSigned = function(a1, a2) {
-        let d = a2 - a1;
-        if (d < -180) {
-            d += 360;
-        } else if (d > 180) {
-            d = 360 - d;
-        }
-        return d;
     }
     i = 1;
     let last = i;
@@ -493,9 +485,9 @@ function findTurningPointsFromTrace2(boundary, threshold=0.1) {
     }
     // If found then shift the code.
     if (found) {
-        trace = trace.slice(i).concat(trace.slice(0, i + threshold * 2));
+        trace = trace.slice(i).concat(trace.slice(0, i));
     } else {
-        trace = trace.slice(0).concat(trace.slice(0, i + threshold * 2));
+        trace = trace.slice().concat(trace.slice(0, i + threshold));
         i = -1;
     }
     length = trace.length;
@@ -521,7 +513,7 @@ function findTurningPointsFromTrace2(boundary, threshold=0.1) {
         // let r_dist = threshold;
         let dist = distanceBetween(trace[tail], trace[head]);
         let ratio = r_dist / dist;
-        if (ratio > 1.13) {
+        if ((ratio > 1.14) && (ratio < 2)) {
             let j = Math.round((head - tail) * (0.77)) + tail;
             turningPoints.push(j);
             tail = j + 1;
@@ -548,7 +540,7 @@ function findTurningPointsFromTrace2(boundary, threshold=0.1) {
             while ((!changed) && (j < turningPoints.length)) {
                 if ((i != j)) {
                     let dist = distanceBetween(trace[turningPoints[i]], trace[turningPoints[j]]);
-                    if (dist < threshold) {
+                    if (dist < threshold * 2) {
                         turningPoints.splice(j, 1);
                         changed = true;
                     }

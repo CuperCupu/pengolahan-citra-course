@@ -41,8 +41,9 @@ $(document).ready(function() {
                 }
                 var translate_index = function(i, off, length) {
                     if (off > -1) {
-                        i = (i + off) % length;
+                        i += off;
                     }
+                    i %= length;
                     return i;
                 }
                 // // var t = findTurningPointsFromChainCode(b.code);

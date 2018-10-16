@@ -59,6 +59,8 @@ function findBound(img) {
     return {
         min: min,
         max: max,
+        width: max.x - min.x + 1,
+        height: max.y - min.y + 1
     }
 }
 
