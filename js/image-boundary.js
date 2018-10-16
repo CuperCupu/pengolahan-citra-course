@@ -367,6 +367,7 @@ function findTurningPointsFromTrace(boundary, threshold=0.03) {
     if (found) {
         trace = trace.slice(i).concat(trace.slice(0, i + threshold * 2));
     } else {
+        trace = trace.slice(0).concat(trace.slice(0, i + threshold * 2));
         i = -1;
     }
     length = trace.length;
@@ -380,15 +381,6 @@ function findTurningPointsFromTrace(boundary, threshold=0.03) {
     }
     var angleDelta = function(a1, a2) {
         return Math.min(Math.abs(a1 - a2), 360 - Math.abs(a1 - a2));
-    }
-    var angleDeltaSigned = function(a1, a2) {
-        let d = a2 - a1;
-        if (d < -180) {
-            d += 360;
-        } else if (d > 180) {
-            d = 360 - d;
-        }
-        return d;
     }
     i = 1;
     let last = i;
@@ -457,11 +449,7 @@ function findTurningPointsFromTrace(boundary, threshold=0.03) {
             let j = 0;
             while ((!changed) && (j < turningPoints.length)) {
                 if ((i != j)) {
-                    let p1 = trace[turningPoints[i]];
-                    let p2 = trace[turningPoints[j]];
-                    let dx = p2.x - p1.x;
-                    let dy = p2.y - p1.y;
-                    let dist = Math.sqrt((dx * dx) + (dy * dy));
+                    let dist = distanceBetween(trace[turningPoints[i]], trace[turningPoints[j]]);
                     if (dist < threshold) {
                         turningPoints.splice(j, 1);
                         changed = true;
@@ -479,10 +467,118 @@ function findTurningPointsFromTrace(boundary, threshold=0.03) {
     };
 }
 
+
+function findTurningPointsFromTrace2(boundary, threshold=0.1) {
+    let trace = boundary.trace;
+    let code = boundary.code;
+    let length = trace.length;
+    threshold = Math.round(boundary.size.height * threshold);
+    // Find end points and shift the code.
+    let i = 0;
+    let found = false;
+    while ((!found) && (i < length - 1)) {
+        let delta = getDirDiff(code.get(i + 1), code.get(i));
+        if (delta == 4) {
+            found = true;
+        }
+        i++;
+    }
+    // If found then shift the code.
+    if (found) {
+        trace = trace.slice(i).concat(trace.slice(0, i));
+    } else {
+        trace = trace.slice().concat(trace.slice(0, i + threshold));
+        i = -1;
+    }
+    length = trace.length;
+    // Find turning points.
+    let turningPoints = [];
+    let slice = i;
+    let tail = 0
+    let shiftHead = function() {
+        head = tail + 1;
+        while ((head < tail + threshold) && (head < length - 1)) {
+            let n = trace[head + 1];
+            let p = trace[head - 1];
+            if ((n.x == p.x) && (n.y == p.y)) {
+                tail = head;
+            }
+            head++;
+        }
+    }
+    let head = tail + threshold;
+    let s = []
+    while (head < length - 1) {
+        let r_dist = realDistanceBetween(trace[tail], trace[head], trace);
+        // let r_dist = threshold;
+        let dist = distanceBetween(trace[tail], trace[head]);
+        let ratio = r_dist / dist;
+        if ((ratio > 1.14) && (ratio < 20)) {
+            let j = Math.round((head - tail) * (0.77)) + tail;
+            turningPoints.push(j);
+            tail = j + 1;
+            shiftHead();
+        } else {
+            let n = trace[head + 1];
+            let p = trace[head - 1];
+            if ((n.x == p.x) && (n.y == p.y)) {
+                tail = head;
+                shiftHead();
+            } else {
+                head++;
+                tail++;
+            }
+        }
+    }
+
+    let changed = false;
+    do {
+        changed = false;
+        let i = 0;
+        while ((!changed) && (i < turningPoints.length)) {
+            let j = 0;
+            while ((!changed) && (j < turningPoints.length)) {
+                if ((i != j)) {
+                    let dist = distanceBetween(trace[turningPoints[i]], trace[turningPoints[j]]);
+                    if (dist < threshold * 2) {
+                        turningPoints.splice(j, 1);
+                        changed = true;
+                    }
+                }
+                j++;
+            }
+            i++;
+        }
+    } while (changed);
+    return {
+        turningPoints: turningPoints,
+        suspicious: s,
+        sliced: slice
+    };
+}
+
+function distanceBetween(p1, p2) {
+    let dx = p2.x - p1.x;
+    let dy = p2.y - p1.y;
+    return Math.sqrt((dx * dx) + (dy * dy));
+}
+
+let distBetweenIndex = function(i1, i2, traces) {
+    let dist = 0;
+    if (i1 > i2) {
+        let t = i1;
+        i1 = i2;
+        i2 = t;
+    }
+    for (let i = i1; i < i2; i++) {
+        dist += distanceBetween(traces[i], traces[i+1]);
+    }
+    return dist;
+}
 function realDistanceBetween(p1, p2, traces) {
     let p1s = [];
     let p2s = [];
-    for (let i in traces) {
+    for (let i = 0; i < traces.length; i++) {
         if ((traces[i].x == p1.x) && (traces[i].y == p1.y)) {
             p1s.push(i);
         }
@@ -493,7 +589,7 @@ function realDistanceBetween(p1, p2, traces) {
     let dist = traces.length;
     for (let i in p1s) {
         for (let j in p2s) {
-            let d = Math.abs(p1s[i] - p2s[i]);
+            let d = distBetweenIndex(p1s[i], p2s[i], traces);
             if (d < dist) {
                 dist = d;
             }

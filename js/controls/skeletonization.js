@@ -25,35 +25,25 @@ $(document).ready(function() {
                 var endPoints = findEndPointsRaw(image);
                 var crucialPoints = findCrucialPoints(image);
                 var triplePoints = findTriplePoints(image);
-                image = removeFakeLines(image, endPoints, triplePoints, crucialPoints);
+                image = removeFakeLinesThreshold(image, endPoints, triplePoints, crucialPoints);
             } else if (stage == 5) {
-                // var turningPoints = findTurningPoints(image);
-                // for (var i = 0; i < turningPoints.length; i++){
-                //     image.data[turningPoints[i]] = 250;
-                //     image.data[turningPoints[i] + 1] = 0;
-                //     image.data[turningPoints[i] + 2] = 0;
-                // }
-                // var b = findBoundary(image);
-                // var t = findTurningPointsFromTrace(b);
-                // s = t.sliced;
-                // if (s < 0) {
-                //     s = 0;
-                // }
-                // var translate_index = function(i, off, length) {
-                //     if (off > -1) {
-                //         i = (i + off) % length;
-                //     }
-                //     return i;
-                // }
-                // // var t = findTurningPointsFromChainCode(b.code);
-                // for (var i in t.suspicious) {
-                //     let j = translate_index(t.suspicious[i], t.sliced, b.code.length);
-                //     // setImgPixelAt(image, b.trace[j].x, b.trace[j].y, new Color(0, 255, 255));
-                // }
-                // for (var i in t.turningPoints) {
-                //     let j = translate_index(t.turningPoints[i], t.sliced, b.code.length);
-                //     // setImgPixelAt(image, b.trace[j].x, b.trace[j].y, new Color(255, 0, 0));
-                // }
+                var b = findBoundary(image);
+                var t = findTurningPointsFromTrace2(b);
+                s = t.sliced;
+                if (s < 0) {
+                    s = 0;
+                }
+                var translate_index = function(i, off, length) {
+                    if (off > -1) {
+                        i += off;
+                    }
+                    i %= length;
+                    return i;
+                }
+                for (var i in t.turningPoints) {
+                    let j = translate_index(t.turningPoints[i], t.sliced, b.code.length);
+                    setImgPixelAt(image, b.trace[j].x, b.trace[j].y, new Color(255, 0, 0));
+                }
                 
             }
             currentSkeletonizeStage = stage;

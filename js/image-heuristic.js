@@ -15,11 +15,18 @@ class CharacterHeuristic{
             this.turningPoints = [];
             this.turningPointCount = 0;
         }
+        if (data.dots) {
+            this.dots = data.dots;
+            this.dotCount = data.dotCount;
+        } else {
+            this.dots = [];
+            this.dotCount = 0;
+        }
         this.minRatio = data.minRatio;
         this.maxRatio = data.maxRatio;
     }
 
-    match(ratio, endPoints, turningPoints) {
+    match(ratio, endPoints, turningPoints, dots) {
         // Test against ratio.
         if ((this.minRatio != null) && (ratio < this.minRatio)) {
             return false;
@@ -33,6 +40,10 @@ class CharacterHeuristic{
         if ((this.turningPointCount != null) && (turningPoints.length != this.turningPointCount)) {
             return false;
         }
+        if ((this.dotCount != null) && (dots.length != this.dotCount)) {
+            return false;
+        }
+        // Test against end points.
         let match = true;
         let i = 0;
         while ((match) && (i < this.endPoints.length)) {
@@ -46,12 +57,18 @@ class CharacterHeuristic{
             }
             if (rule.count != null) {
                 match = count == rule.count;
+            } else if ((rule.minCount != null) && (rule.maxCount == null)) {
+                match = count >= rule.minCount;
+            } else if ((rule.minCount == null) && (rule.maxCount != null)) {
+                match = count <= rule.maxCount;
+            } else if ((rule.minCount != null) && (rule.maxCount != null)) {
+                match = count >= rule.minCount && count <= rule.maxCount;
             } else {
                 match = count > 0;
             }
             i++;
         }
-        match = true;
+        // Test against turning points.
         i = 0;
         while ((match) && (i < this.turningPoints.length)) {
             let rule = this.turningPoints[i];
@@ -64,6 +81,36 @@ class CharacterHeuristic{
             }
             if (rule.count != null) {
                 match = count == rule.count;
+            } else if ((rule.minCount != null) && (rule.maxCount == null)) {
+                match = count >= ruleminCount;
+            } else if ((rule.minCount == null) && (rule.maxCount != null)) {
+                match = count >= rule.maxCount;
+            } else if ((rule.minCount != null) && (rule.maxCount != null)) {
+                match = count >= rule.minCount && count <= rule.maxCount;
+            } else {
+                match = count > 0;
+            }
+            i++;
+        }
+        // Test against dots.
+        i = 0;
+        while ((match) && (i < this.dots.length)) {
+            let rule = this.dots[i];
+            let count = 0;
+            for (var j in dots) {
+                let p = dots[j];
+                if (CharacterHeuristic.matchDot(p, rule)) {
+                    count++;
+                }
+            }
+            if (rule.count != null) {
+                match = count == rule.count;
+            } else if ((rule.minCount != null) && (rule.maxCount == null)) {
+                match = count >= ruleminCount;
+            } else if ((rule.minCount == null) && (rule.maxCount != null)) {
+                match = count >= rule.maxCount;
+            } else if ((rule.minCount != null) && (rule.maxCount != null)) {
+                match = count >= rule.minCount && count <= rule.maxCount;
             } else {
                 match = count > 0;
             }
@@ -85,6 +132,11 @@ CharacterHeuristic.matchEndPoint = function(point, rule) {
             return false;
         }
     }
+    if (rule.grids) {
+        if (!rule.grids.includes(point.grid)) {
+            return false;
+        }
+    }
     return true;
 }
 
@@ -94,17 +146,36 @@ CharacterHeuristic.matchTurningPoint = function(point, rule) {
             return false;
         }
     }
+    if (rule.grids) {
+        if (!rule.grids.includes(point.grid)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+CharacterHeuristic.matchDot = function(point, rule) {
+    if (rule.quadrants) {
+        if (!rule.quadrants.includes(point.quadrant)) {
+            return false;
+        }
+    }
+    if (rule.grids) {
+        if (!rule.grids.includes(point.grid)) {
+            return false;
+        }
+    }
     return true;
 }
 
 var character_heuristics = [];
 
-match_all_heuristics = function(ratio, endPoints, turningPoints) {
+match_all_heuristics = function(ratio, endPoints, turningPoints, dots) {
     let matched = [];
     for (var i in character_heuristics) {
         let h = character_heuristics[i];
         if (!matched.includes(h.name)) {
-            if (h.match(ratio, endPoints, turningPoints)) {
+            if (h.match(ratio, endPoints, turningPoints, dots)) {
                 matched.push(h.name);
             }
         }
@@ -112,17 +183,27 @@ match_all_heuristics = function(ratio, endPoints, turningPoints) {
     return matched;
 }
 
+pointGrid = function(p, bound, gridSize = 4) {
+    let x = (p.x - bound.min.x) / bound.width;
+    let y = (p.y - bound.min.y) / bound.height;
+    let space = 1 / gridSize;
+    x = Math.floor(x / space);
+    y = Math.floor(y / space)
+    return x + (y * gridSize) + 1;
+}
+
 match_all_heuristics_from_image = function(image) {
     var b = findBoundary(image);
-    var t = findTurningPointsFromTrace(b);
+    var t = findTurningPointsFromTrace2(b);
     s = t.sliced;
     if (s < 0) {
         s = 0;
     }
     var translate_index = function(i, off, length) {
         if (off > -1) {
-            i = (i + off) % length;
+            i += off;
         }
+        i %= length;
         return i;
     }
     let bound = findBound(image);
@@ -139,7 +220,8 @@ match_all_heuristics_from_image = function(image) {
         endpoints.push({
             point: e[i],
             quadrant: categorizeQuadrant(getOffsetFromCenter(e[i].x, e[i].y, center)),
-            direction: endPointDirection(e[i].x, e[i].y, image)
+            direction: endPointDirection(e[i].x, e[i].y, image),
+            grid: pointGrid(e[i], bound),
         });
     }
     let turningpoints = [];
@@ -147,11 +229,22 @@ match_all_heuristics_from_image = function(image) {
         let j = translate_index(t.turningPoints[i], t.sliced, b.code.length);
         turningpoints.push({
             point: b.trace[j],
-            quadrant: categorizeQuadrant(getOffsetFromCenter(b.trace[j].x, b.trace[j].y, center))
+            quadrant: categorizeQuadrant(getOffsetFromCenter(b.trace[j].x, b.trace[j].y, center)),
+            grid: pointGrid(b.trace[j], bound),
+        });
+    }
+    let d = findDots(image);
+    let dots = []
+    for (var i in d) {
+        dots.push({
+            point: d[i],
+            quadrant: categorizeQuadrant(getOffsetFromCenter(d[i].x, d[i].y, center)),
+            grid: pointGrid(d[i], bound),
         });
     }
     console.log(endpoints);
     console.log(turningpoints);
+    console.log(dots);
     console.log(ratio, width, height);
-    return match_all_heuristics(ratio, endpoints, turningpoints);
+    return match_all_heuristics(ratio, endpoints, turningpoints, dots);
 }
