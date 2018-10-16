@@ -153,8 +153,6 @@ function equalizePixels(mult=1, offset=0, exp=1) {
     }
 }
 
-var onReset = [];
-
 function resetPixels() {
     try {
         if (counts) {

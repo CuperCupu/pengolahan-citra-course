@@ -10,6 +10,8 @@ var image_default;
 var counts;
 Math.clamp=function(a,b,c){return Math.max(b,Math.min(c,a));}
 
+var onReset = [];
+
 function startWebcam() {
     if (navigator.getUserMedia) {
         navigator.getUserMedia (
@@ -89,6 +91,9 @@ function snapshot() {
         counts = countPixels(image);
         resetColorChart(counts);
         $("#controls").collapse("show");
+        for (var i in onReset) {
+            onReset[i]();
+        }
     }
 }
 
@@ -138,6 +143,9 @@ function load_image_file(img_url) {
             counts = countPixels(image);
             resetColorChart(counts);
             $("#controls").collapse("show");
+            for (var i in onReset) {
+                onReset[i]();
+            }
         };
 
         reader.onload = function(event) {

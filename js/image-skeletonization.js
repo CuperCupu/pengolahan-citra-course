@@ -103,21 +103,6 @@ function categorizeQuadrant(off) {
     return null;
 }
 
-function endPointDirection(x, y, image) {
-    var dir = 0;
-    var i = 1;
-    while (i < 9) {
-        var off = getOffset(i);
-        var c = getImgPixelAt(image, x + off.x, y + off.y);
-        if (c.r > 0) {
-            dir = i;
-            i = 9;
-        }
-        i++;
-    }
-    return offsetDir(dir, 4);
-}
-
 function preprocessImage(img) {
     try {
         var newimg = ctx.createImageData(img.width, img.height);
@@ -275,7 +260,10 @@ function findEndPoints(img) {
         if (img.data[i] == 255){
             var num = nNeighbours(img, i)
             if (num == 1) {         // Found end points
-                endPoints.push(i)
+                endPoints.push({
+                    x: Math.floor((i % (img.width * 4) / 4)),
+                    y: Math.floor(i / img.width / 4)
+                })
             }
         }
     }
@@ -409,7 +397,7 @@ function removeFakeLines(img, endPoints, triplePoints, crucialPoints){
                     if (index > -1) {
                         endPoints.splice(index, 1);
                     }
-                    if (idx > 1){
+                    if (idx > 0){
                     img.data[pointer] = 0;
                     img.data[pointer + 1] = 0;
                     img.data[pointer + 2] = 0;}

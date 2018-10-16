@@ -21,6 +21,7 @@
     <script type="text/javascript" src="js/image-contrast-stretch.js"></script>
     <script type="text/javascript" src="js/image-heuristic.js"></script>
     <script type="text/javascript" src="js/image-skeletonization.js"></script>
+    <script type="text/javascript" src="js/image-boundary.js"></script>
     <script type="text/javascript" src="js/controls/char-generator.js"></script>
     <script type="text/javascript" src="js/controls/image-loader.js"></script>
     <script type="text/javascript" src="js/controls/processor.js"></script>
@@ -128,6 +129,16 @@
                                 <button id="button-skeleton-removefakelines" class="col btn btn-dark">Remove Fake Lines</button>
                                 <button id="button-skeleton-turningpoints" class="col btn btn-dark">Find Turning Points</button>
                                 <button id="button-skeleton-all" class="col btn btn-dark">Complete</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="control-container col-12 mt-1">
+                        <button class="col-12 btn btn-dark">Recognition</button>
+                        <div class="control-section collapse">
+                            <div class="container">
+                                <button id="button-recognize" class="col-12 btn btn-dark">Recognize</button>
+                                <span class="col">Result:</span>
+                                <span id="recognize-result" class="col">None</span>
                             </div>
                         </div>
                     </div>

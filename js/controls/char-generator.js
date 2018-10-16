@@ -30,5 +30,8 @@ $(document).ready(function() {
         counts = countPixels(image);
         resetColorChart(counts);
         $("#controls").collapse("show");
+        for (var i in onReset) {
+            onReset[i]();
+        }
     });
 });

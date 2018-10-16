@@ -1,23 +1,25 @@
 // Number 1
 character_heuristics.push(new CharacterHeuristic({
-    char: "1",
+    name: "1",
+    endPointCount: 2,
     endPoints: [
         {
+            count: 1,
             quadrants: [
-                2, 4
+                2, 3, 4
             ],
-            directions: [
+            direction: [
                 2, 3, 4
             ]
         },
         {
+            count: 1,
             quadrants: [
-                5, 7
+                6, 7, 8
             ],
-            directions: [
-                5, 6, 7
+            direction: [
+                6, 7, 8
             ]
         }
-    ],
-    turningPoints: []
+    ]
 }));

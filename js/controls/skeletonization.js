@@ -27,12 +27,34 @@ $(document).ready(function() {
                 var triplePoints = findTriplePoints(image);
                 image = removeFakeLines(image, endPoints, triplePoints, crucialPoints);
             } else if (stage == 5) {
-                var turningPoints = findTurningPoints(image);
-                for (var i = 0; i < turningPoints.length; i++){
-                    image.data[turningPoints[i]] = 250;
-                    image.data[turningPoints[i] + 1] = 0;
-                    image.data[turningPoints[i] + 2] = 0;
+                // var turningPoints = findTurningPoints(image);
+                // for (var i = 0; i < turningPoints.length; i++){
+                //     image.data[turningPoints[i]] = 250;
+                //     image.data[turningPoints[i] + 1] = 0;
+                //     image.data[turningPoints[i] + 2] = 0;
+                // }
+                var b = findBoundary(image);
+                var t = findTurningPointsFromTrace(b);
+                s = t.sliced;
+                if (s < 0) {
+                    s = 0;
                 }
+                var translate_index = function(i, off, length) {
+                    if (off > -1) {
+                        i = (i + off) % length;
+                    }
+                    return i;
+                }
+                // var t = findTurningPointsFromChainCode(b.code);
+                for (var i in t.suspicious) {
+                    let j = translate_index(t.suspicious[i], t.sliced, b.code.length);
+                    // setImgPixelAt(image, b.trace[j].x, b.trace[j].y, new Color(0, 255, 255));
+                }
+                for (var i in t.turningPoints) {
+                    let j = translate_index(t.turningPoints[i], t.sliced, b.code.length);
+                    // setImgPixelAt(image, b.trace[j].x, b.trace[j].y, new Color(255, 0, 0));
+                }
+                
             }
             currentSkeletonizeStage = stage;
         }
@@ -55,4 +77,16 @@ $(document).ready(function() {
             ctx2.putImageData(image, 0, 0);
         });
     }
+    let button = $('#button-recognize');
+    button.attr('stage', buttons.length+1);
+    button.click(function(e) {
+        skeletonizeStaged($(this).attr('stage'));
+        ctx2.putImageData(image, 0, 0);
+        let result = match_all_heuristics_from_image(image);
+        if (result.length > 0) {
+            $('#recognize-result').text(result);
+        } else {
+            $('#recognize-result').text('No match');
+        }
+    });
 });

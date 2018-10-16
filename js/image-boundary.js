@@ -34,6 +34,10 @@ class ChainCode {
         return this.code;
     }
 
+    get(i) {
+        return parseInt(this.code[i]);
+    }
+
     getAt(x) {
         var index = Math.round(x * this.length);
         if (index === this.length) {
@@ -77,6 +81,21 @@ class ChainCode {
     }
 }
 
+function endPointDirection(x, y, image) {
+    var dir = 0;
+    var i = 1;
+    while (i < 9) {
+        var off = getOffset(i);
+        var c = getImgPixelAt(image, x + off.x, y + off.y);
+        if (c.r > 0) {
+            dir = i;
+            i = 9;
+        }
+        i++;
+    }
+    
+    return offsetDir(dir, 4);
+}
 
 var getOffset = function(dir) {
     if (dir == 0) {
@@ -109,9 +128,9 @@ var getSide = function(dir) {
 var offsetDir = function(dir, off) {
     dir += off;
     if (dir > 8) {
-        dir = 1;
+        dir -= 8;
     } else if (dir < 1) {
-        dir = 8;
+        dir += 8;
     }
     return dir;
 }
@@ -156,7 +175,21 @@ function findBoundary(img) {
         var result = new ChainCode();
         var x, y, sx, sy = 0;
         var dir = 1;
-        var pos = findNonEmpty(img);
+        var p = findEndPoints(img);
+        if (p.length > 0) {
+            var pos = p[0];
+            var dir = offsetDir(endPointDirection(pos.x, pos.y, img), 2);
+        } else {
+            var pos = findNonEmpty(img);
+        }
+        var min = {
+            x: img.width,
+            y: img.height
+        }
+        var max = {
+            x: 0,
+            y: 0
+        }
         if (pos != null) {
             sx = x = pos.x;
             sy = y = pos.y;
@@ -165,6 +198,18 @@ function findBoundary(img) {
             var trace = []
             var opaque = false;
             do {
+                if (x < min.x) {
+                    min.x = x;
+                }
+                if (x > max.x) {
+                    max.x = x;
+                }
+                if (y < min.y) {
+                    min.y = y;
+                }
+                if (y > max.y) {
+                    max.y = y;
+                }
                 opaque = false;
                 var it = 0;
                 dir = offsetDir(dir, 2);
@@ -195,11 +240,242 @@ function findBoundary(img) {
             return {
                 "start": new Point(sx, sy),
                 "code": result,
-                "trace": trace
+                "trace": trace,
+                "boundary": {
+                    min: min,
+                    max: max
+                },
+                "size": {
+                    width: max.x - min.x,
+                    height: max.y - min.y
+                }
             };
         }
         return null;
     } catch(err) {
         alert("boundary: " + err);
     }
+}
+
+function findTurningPointsFromChainCode(code, threshold=0.025) {
+    let length = code.length;
+    threshold = Math.round(length * threshold);
+    // Find end points and shift the code.
+    let i = 0;
+    let found = false;
+    while ((!found) && (i < length - 1)) {
+        let delta = getDirDiff(code.get(i + 1), code.get(i));
+        if (delta == 4) {
+            found = true;
+        }
+        i++;
+    }
+    let ncode = code;
+    // If found then shift the code.
+    if (found) {
+        ncode = new ChainCode();
+        for (let j = i; j < length; j++) {
+            ncode.addCode(code.get(j));
+        }
+        for (let j = 0; j < i; j++) {
+            ncode.addCode(code.get(j));
+        }
+    } else {
+        i = -1;
+    }
+    // Find turning points.
+    let turningPoints = [];
+    let slice = i;
+    let suspicious = false;
+    let last_deltas = [];
+    let avg = function(vals) {
+        if (vals.length > 0) {
+            let total = 0;
+            for (var i in vals) {
+                total += vals[i];
+            }
+            return total / vals.length;
+        } else {
+            return 0;
+        }
+    }
+    i = 0;
+    let turning_delta = 0;
+    let turning_point = 0;
+    let s = [];
+    while (i < length - 1) {
+        let delta = getDirDiff(ncode.get(i), ncode.get(i + 1));
+        if (last_deltas.length >= threshold) {
+            let last_delta = avg(last_deltas);
+            if (suspicious) {
+                if (Math.abs(turning_delta - last_delta) > 1) {
+                    suspicious = false;
+                    turningPoints.push(turning_point);
+                    last_deltas = [];
+                }
+            } else {
+                let d = Math.abs(delta - last_delta);
+                if (d == 4) {
+                    last_deltas = [];
+                } else if (d > 1) {
+                    suspicious = true;
+                    s.push(i + 1);
+                    turning_delta = last_delta;
+                    turning_point = i + 1;
+                    last_deltas = [];
+                } else {
+                    last_deltas.splice(0, 1);
+                }
+            }
+        } else {
+            if (suspicious) {
+                let last_delta = avg(last_deltas);
+                if (Math.abs(delta - last_delta) >= 1) {
+                    s.push(i + 1);
+                    turning_delta = last_delta;
+                    turning_point = i + 1;
+                    last_deltas.splice(0, 1);
+                }
+            }
+        }
+        last_deltas.push(delta);
+        i++;
+    }
+    return {
+        turningPoints: turningPoints,
+        suspicious: s,
+        sliced: slice
+    };
+}
+
+
+function findTurningPointsFromTrace(boundary, threshold=0.03) {
+    let trace = boundary.trace;
+    let code = boundary.code;
+    let length = trace.length;
+    threshold = Math.round(((boundary.size.width + boundary.size.width) / 2) * threshold);
+    // Find end points and shift the code.
+    let i = 0;
+    let found = false;
+    while ((!found) && (i < length - 1)) {
+        let delta = getDirDiff(code.get(i + 1), code.get(i));
+        if (delta == 4) {
+            found = true;
+        }
+        i++;
+    }
+    // If found then shift the code.
+    if (found) {
+        trace = trace.slice(i).concat(trace.slice(0, i + threshold * 2));
+    } else {
+        i = -1;
+    }
+    length = trace.length;
+    // Find turning points.
+    let turningPoints = [];
+    let slice = i;
+    let suspicious = false;
+    
+    var angleBetween = function(p1, p2) {
+        return Math.atan2(p2.y - p1.y, p2.x - p1.x) / Math.PI * 180;
+    }
+    var angleDelta = function(a1, a2) {
+        return Math.min(Math.abs(a1 - a2), 360 - Math.abs(a1 - a2));
+    }
+    var angleDeltaSigned = function(a1, a2) {
+        let d = a2 - a1;
+        if (d < -180) {
+            d += 360;
+        } else if (d > 180) {
+            d = 360 - d;
+        }
+        return d;
+    }
+    i = 1;
+    let last = i;
+    let turning_delta = 0;
+    let turning_pos = 0;
+    let s = [];
+    while (i < length - 1) {
+        let delta = angleBetween(trace[i], trace[i+1]);
+        let b_delta = angleBetween(trace[i-1], trace[i]);
+        let l_delta = angleBetween(trace[last], trace[i]);
+        let lt_delta = angleBetween(trace[last], trace[i+1]);
+        let a_delta = angleDelta(l_delta, delta);
+        let ab_delta = angleDelta(b_delta, delta);
+        if (ab_delta < 180) {
+            if (a_delta > 45) {
+                // A turn.
+                if (suspicious) {
+                    if (i - turning_pos > threshold) {
+                        suspicious = false;
+                        last = i;
+                        s.push(i);
+                    }
+                    // turning_delta = l_delta;
+                    // turning_pos = i;
+                } else {
+                    if (i - last > threshold) {
+                        suspicious = true;
+                        turning_delta = l_delta;
+                        turning_pos = i;
+                        last = i;
+                        s.push(i);
+                    } else if (a_delta > 90) {
+                        last = i;
+                    }
+                }
+            } else {
+                if (i - last > threshold) {
+                    if (suspicious) {
+                        // let t_delta = angleBetween(trace[turning_pos], trace[i]);
+                        let ta_delta = angleDelta(turning_delta, l_delta);
+                        if ((ta_delta > 45) && (ta_delta < 180)) {
+                            turningPoints.push(turning_pos);
+                        }
+                        suspicious = false;
+                    }
+                    last = i - threshold;
+                } else {
+                    if (suspicious) {
+                        if (angleDelta(a_delta, turning_delta) < 30) {
+
+                        }
+                    }
+                }
+            }
+        } else {
+            suspicious = false;
+            last = i;
+        }
+        i++;
+    }
+    let changed = false;
+    do {
+        changed = false;
+        let i = 0;
+        while ((!changed) && (i < turningPoints.length)) {
+            let j = 0;
+            while ((!changed) && (j < turningPoints.length)) {
+                if ((i != j)) {
+                    let p1 = trace[turningPoints[i]];
+                    let p2 = trace[turningPoints[j]];
+                    let dx = p2.x - p1.x;
+                    let dy = p2.y - p1.y;
+                    let dist = Math.sqrt((dx * dx) + (dy * dy));
+                    if (dist < threshold) {
+                        turningPoints.splice(j, 1);
+                        changed = true;
+                    }
+                }
+                j++;
+            }
+            i++;
+        }
+    } while (changed);
+    return {
+        turningPoints: turningPoints,
+        suspicious: s,
+        sliced: slice
+    };
 }
