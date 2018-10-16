@@ -478,7 +478,7 @@ function removeFakeLinesThreshold(img, endPoints, triplePoints, crucialPoints){
     
     thresholdChoice = rBoundLength * 0.2
     console.log(thresholdChoice)
-    nPercent = 0.175
+    nPercent = Math.abs(xBoundLength - yBoundLength) / (xBoundLength + yBoundLength) * 1.25
     var suspectValue = []
     for (var i = 0; i < triplePoints.length; i++){
         console.log(triplePoints)
