@@ -381,7 +381,6 @@ function removeFakeLines(img, endPoints, triplePoints, crucialPoints){
         pointer = triplePoints[i]
         if (endPoints.length != 0){
             while (pointer != suspectValue[i] && !crucialPoints.includes(suspectValue[i])){
-                idx++;
                 tempPoint = []
                 change = false
                 var tempRow = Math.floor(pointer / img.width / 4);
@@ -410,10 +409,9 @@ function removeFakeLines(img, endPoints, triplePoints, crucialPoints){
                     if (index > -1) {
                         endPoints.splice(index, 1);
                     }
-                    if (idx > 0){
                     img.data[pointer] = 0;
                     img.data[pointer + 1] = 0;
-                    img.data[pointer + 2] = 0;}
+                    img.data[pointer + 2] = 0;
                 }
                 else{
                     for (var j = 0; j < tempPointer.length; j++){
@@ -485,7 +483,6 @@ function removeFakeLinesThreshold(img, endPoints, triplePoints, crucialPoints){
         }
         if (endPoints.length != 0 && (diagonalLength(triplePoints[i], suspectValue[i], img) <= threshold) && !checkTripleStraight(img, triplePoints[i])){
             while (pointer != suspectValue[i] && !crucialPoints.includes(suspectValue[i])){
-                idx++;
                 tempPoint = []
                 change = false
                 var tempRow = Math.floor(pointer / img.width / 4);
@@ -514,10 +511,9 @@ function removeFakeLinesThreshold(img, endPoints, triplePoints, crucialPoints){
                     if (index > -1) {
                         endPoints.splice(index, 1);
                     }
-                    if (idx > 1){
                     img.data[pointer] = 0;
                     img.data[pointer + 1] = 0;
-                    img.data[pointer + 2] = 0;}
+                    img.data[pointer + 2] = 0;
                 }
                 else{
                     for (var j = 0; j < tempPointer.length; j++){
