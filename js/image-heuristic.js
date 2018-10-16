@@ -5,7 +5,7 @@ class CharacterHeuristic{
             this.endPoints = data.endPoints;
             this.endPointCount = data.endPointCount;
         } else {
-            this.endPointCount = [];
+            this.endPoints = [];
             this.endPointCount = 0;
         }
         if (data.turningPoints) {
@@ -126,7 +126,7 @@ match_all_heuristics_from_image = function(image) {
         return i;
     }
     let bound = findBound(image);
-    let width = (bound.max.x - bound.min.y);
+    let width = (bound.max.x - bound.min.x);
     let height = (bound.max.y - bound.min.y);
     let ratio = height / width;
     let center = {
@@ -152,5 +152,6 @@ match_all_heuristics_from_image = function(image) {
     }
     console.log(endpoints);
     console.log(turningpoints);
+    console.log(ratio, width, height);
     return match_all_heuristics(ratio, endpoints, turningpoints);
 }
