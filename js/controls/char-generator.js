@@ -1,5 +1,5 @@
 // Size in part 0..1
-function generateCharacter(canvas, char, font="Arial", bold=false, italic=false, size=0.8) {
+function generateCharacter(canvas, char, font="Arial", bold=false, italic=false, size=0.7) {
     let ctx = canvas.getContext('2d');
     canvas.height = canvas.width;
     ctx.fillStyle = "black";

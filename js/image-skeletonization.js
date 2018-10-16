@@ -496,19 +496,15 @@ function removeFakeLinesThreshold(img, endPoints, triplePoints, crucialPoints){
     // heuristicLength = Math.sqrt(Math.pow((findBound(img).max.y - findBound(img).min.y),2) + Math.pow((findBound(img).max.x - findBound(img).min.x),2))
     
     thresholdChoice = rBoundLength * 0.2
-    console.log(thresholdChoice)
     nPercent = Math.abs(xBoundLength - yBoundLength) / (xBoundLength + yBoundLength) * 1.25
     var suspectValue = []
     for (var i = 0; i < triplePoints.length; i++){
-        console.log(triplePoints)
         let suspectValueN = []
         // let len = diagonalLength(triplePoints[i], endPoints[0], img)
         // suspectValueN = endPoints[0];
         for (var j = 0; j < endPoints.length; j++){
             len = diagonalLength(triplePoints[i], endPoints[j], img)
-            console.log(triplePoints[i], len)
             if (len <= thresholdChoice){
-                console.log(endPoints[j])
                 suspectValueN.push(endPoints[j])
             }
         }
@@ -529,7 +525,6 @@ function removeFakeLinesThreshold(img, endPoints, triplePoints, crucialPoints){
             else {
                 threshold = nPercent * rBoundLength;
             }
-            console.log(threshold)
             if (endPoints.length != 0 && (diagonalLength(triplePoints[i], suspectValue[i][k], img) <= threshold)){//&& !checkTripleStraight(img, triplePoints[i])){
                 while (pointer != suspectValue[i][k] && !crucialPoints.includes(suspectValue[i][k])){
                     tempPoint = []

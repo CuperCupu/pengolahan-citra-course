@@ -28,7 +28,7 @@ $(document).ready(function() {
                 image = removeFakeLinesThreshold(image, endPoints, triplePoints, crucialPoints);
             } else if (stage == 5) {
                 var b = findBoundary(image);
-                var t = findTurningPointsFromTrace2(b);
+                var t = findTurningPointsAll(b);
                 s = t.sliced;
                 if (s < 0) {
                     s = 0;

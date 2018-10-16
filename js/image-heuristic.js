@@ -4,6 +4,8 @@ class CharacterHeuristic{
         if (data.endPoints) {
             this.endPoints = data.endPoints;
             this.endPointCount = data.endPointCount;
+            this.endPointMinCount = data.endPointMinCount;
+            this.endPointMaxCount = data.endPointMaxCount;
         } else {
             this.endPoints = [];
             this.endPointCount = 0;
@@ -11,6 +13,8 @@ class CharacterHeuristic{
         if (data.turningPoints) {
             this.turningPoints = data.turningPoints;
             this.turningPointCount = data.turningPointCount;
+            this.turningMinPointCount = data.turningMinPointCount;
+            this.turningMaxPointCount = data.turningMaxPointCount;
         } else {
             this.turningPoints = [];
             this.turningPointCount = 0;
@@ -220,9 +224,97 @@ pointGrid = function(p, bound, gridSize = 4) {
     return x + (y * gridSize) + 1;
 }
 
+findTurningPointsAll = function(b, threshold=0.1) {
+    var translate_index = function(i, off, length) {
+        if (off > -1) {
+            i += off;
+        }
+        i %= length;
+        return i;
+    }
+    threshold = b.size.height * threshold;
+    var t1 = findTurningPointsFromTrace(b);
+    var t2 = findTurningPointsFromTrace2(b);
+    console.log(t1.sliced, t2.sliced);
+    var turningPoints = t1.turningPoints.slice().concat(t2.turningPoints);
+    // var turningPoints = t1.turningPoints.slice();
+    var trace = b.trace;
+    let changed = false;
+    var findNearest = function(p, trace) {
+        var min = trace.length;
+        var idx = -1;
+        for (let i = 0; i < trace.length; i++) {
+            let d = distanceBetween(p, trace[i]);
+            if (d < min) {
+                min = d;
+                idx = i;
+            }
+        }
+        return idx;
+    }
+    do {
+        changed = false;
+        let i1 = -1;
+        let i2 = -1;
+        let ti1 = -1;
+        let ti2 = -1;
+        let min = trace.length * 2;
+        let i = 0;
+        while ((!changed) && (i < turningPoints.length)) {
+            let j = 0;
+            while ((!changed) && (j < turningPoints.length)) {
+                if (i != j) {
+                    let idx1 = translate_index(turningPoints[i], t1.sliced, b.code.length);
+                    let idx2 = translate_index(turningPoints[j], t1.sliced, b.code.length);
+                    // let res = realPositionBetween(trace[idx1], trace[idx2], trace);
+                    // if (res.dist < threshold * 2) {
+                    //     if (i > j) {
+                    //         turningPoints.splice(i, 1);
+                    //         turningPoints.splice(j, 1);
+                    //     } else {
+                    //         turningPoints.splice(j, 1);
+                    //         turningPoints.splice(i, 1);
+                    //     }
+                    //     turningPoints.push(Math.round((res.p1 + res.p2) / 2));
+                    //     changed = true;
+                    // }
+                    let dist = distanceBetween(trace[idx1], trace[idx2]);
+                    if (dist < min) {
+                        min = dist;
+                        i1 = idx1;
+                        i2 = idx2;
+                        ti1 = i;
+                        ti2 = j;
+                    }
+                }
+                j++;
+            }
+            i++;
+        }
+        if ((ti1 > -1) && ((min < threshold * 2))) {
+            // turningPoints.splice(j, 1);
+            if (ti1 > ti2) {
+                turningPoints.splice(ti1, 1);
+                turningPoints.splice(ti2, 1);
+            } else {
+                turningPoints.splice(ti2, 1);
+                turningPoints.splice(ti1, 1);
+            }
+            let p = new Point(Math.round((trace[i1].x + trace[i2].x) / 2), Math.round((trace[i1].y + trace[i2].y) / 2));
+            let idx = findNearest(p, trace);
+            turningPoints.push(idx);
+            changed = true;
+        }
+    } while (changed);
+    return {
+        turningPoints: turningPoints,
+        sliced: t1.sliced
+    }
+}
+
 match_all_heuristics_from_image = function(image) {
     var b = findBoundary(image);
-    var t = findTurningPointsFromTrace2(b);
+    var t = findTurningPointsAll(b);
     s = t.sliced;
     if (s < 0) {
         s = 0;

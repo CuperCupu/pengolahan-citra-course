@@ -423,6 +423,24 @@ character_heuristics.push(new CharacterHeuristic({
             quadrants: [
                 2
             ]
+        },
+        {
+            maxCount: 0,
+            quadrants: [
+                4
+            ]
+        },
+        {
+            maxCount: 0,
+            quadrants: [
+                6
+            ]
+        },
+        {
+            maxCount: 0,
+            quadrants: [
+                8
+            ]
         }
     ],
     turningPoints: [
@@ -493,6 +511,24 @@ character_heuristics.push(new CharacterHeuristic({
             count: 1,
             quadrants: [
                 6
+            ]
+        },
+        {
+            maxCount: 0,
+            quadrants: [
+                2
+            ]
+        },
+        {
+            maxCount: 0,
+            quadrants: [
+                4
+            ]
+        },
+        {
+            maxCount: 0,
+            quadrants: [
+                8
             ]
         }
     ],
