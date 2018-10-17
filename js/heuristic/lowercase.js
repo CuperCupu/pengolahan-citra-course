@@ -1,12 +1,4 @@
-// o
-character_heuristics.push(new CharacterHeuristic({
-    name: "o",
-    endPointCount: 0,
-    maxRatio: 1.3
-}));
-
 // y
-
 character_heuristics.push(new CharacterHeuristic({
     name: "y",
     minRatio: 0.8,
@@ -31,6 +23,9 @@ character_heuristics.push(new CharacterHeuristic({
             grids: [
                 13
             ],
+            directions: [
+                4, 5, 6
+            ]
         },
         {
             minCount: 0,

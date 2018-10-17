@@ -9,6 +9,7 @@ character_heuristics.push(new CharacterHeuristic({
 character_heuristics.push(new CharacterHeuristic({
     name: "1",
     minRatio: 70,
+    strict: true,
     endPointCount: 2,
     endPoints: [
         {
@@ -36,12 +37,14 @@ character_heuristics.push(new CharacterHeuristic({
 // Number 1
 character_heuristics.push(new CharacterHeuristic({
     name: "1",
+    strict: true,
     endPointCount: 2,
     endPoints: [
         {
             count: 1,
-            quadrants: [
-                4
+            grids: [
+                1, 2,
+                5, 6
             ],
             direction: [
                 4, 5, 6
@@ -49,20 +52,25 @@ character_heuristics.push(new CharacterHeuristic({
         },
         {
             count: 1,
-            quadrants: [
-                8
+            grids: [
+                16
             ],
             direction: [
                 6, 7, 8
             ]
         }
     ],
-    turningPointCount: 1,
     turningPoints: [
         {
             count: 1,
             grids: [
                 3, 4
+            ]
+        }, 
+        {
+            maxCount: 1,
+            grids: [
+                1
             ]
         }
     ]
@@ -71,6 +79,7 @@ character_heuristics.push(new CharacterHeuristic({
 // Number 1
 character_heuristics.push(new CharacterHeuristic({
     name: "1",
+    strict: true,
     endPointCount: 3,
     endPoints: [
         {
@@ -84,8 +93,8 @@ character_heuristics.push(new CharacterHeuristic({
         },
         {
             count: 1,
-            quadrants: [
-                8
+            grids: [
+                13
             ],
             direction: [
                 6, 7, 8
@@ -93,15 +102,14 @@ character_heuristics.push(new CharacterHeuristic({
         },
         {
             count: 1,
-            quadrants: [
-                6
+            grids: [
+                16
             ],
             direction: [
                 6, 7, 8
             ]
         }
     ],
-    turningPointCount: 2,
     turningPoints: [
         {
             count: 1,
@@ -113,6 +121,12 @@ character_heuristics.push(new CharacterHeuristic({
             count: 1,
             grids: [
                 14, 15
+            ]
+        }, 
+        {
+            maxCount: 1,
+            grids: [
+                1
             ]
         }
     ]
@@ -176,6 +190,7 @@ character_heuristics.push(new CharacterHeuristic({
 character_heuristics.push(new CharacterHeuristic({
     name: "3",
     minRatio: 1.4,
+    strict: true,
     endPoints: [
         {
             count: 1,
@@ -213,23 +228,22 @@ character_heuristics.push(new CharacterHeuristic({
     turningPoints: [
         {
             minCount: 0,
-            maxCount: 1,
+            maxCount: 2,
             grids: [
-                5, 6, 7, 8, 9, 10, 11, 12
+                7, 8,
+                11, 12
             ]
         },
         {
-            minCount: 0,
             maxCount: 1,
             quadrants: [
-                4
+                1, 2
             ]
         },
         {
-            minCount: 0,
             maxCount: 1,
             quadrants: [
-                6
+                13, 14
             ]
         }
     ],
@@ -471,12 +485,17 @@ character_heuristics.push(new CharacterHeuristic({
             ]
         }
     ],
-    turningPointCount: 1,
     turningPoints: [
         {
             count: 1,
             grids: [
                 4
+            ]
+        },
+        {
+            maxCount: 1,
+            grids: [
+                14, 15
             ]
         },
     ]

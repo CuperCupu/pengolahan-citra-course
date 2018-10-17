@@ -277,7 +277,7 @@ pointGrid = function(p, bound, gridSize = 4) {
     return x + (y * gridSize) + 1;
 }
 
-findTurningPointsAll = function(b, threshold=0.1) {
+findTurningPointsAll = function(b, threshold=0.075) {
     var translate_index = function(i, off, length) {
         if (off > -1) {
             i += off;
