@@ -26,6 +26,12 @@ class CharacterHeuristic{
             this.dots = [];
             this.dotCount = 0;
         }
+        this.strict = data.strict;
+        if (this.strict) {
+            console.log(this.name, CharacterHeuristic.calculateStrict(this.endPoints), CharacterHeuristic.calculateStrict(this.turningPoints));
+            this.endPoints.push(CharacterHeuristic.calculateStrict(this.endPoints));
+            this.turningPoints.push(CharacterHeuristic.calculateStrict(this.turningPoints));
+        }
         this.minRatio = data.minRatio;
         this.maxRatio = data.maxRatio;
         this.custom = data.custom;
@@ -150,6 +156,53 @@ class CharacterHeuristic{
         }
 
         return match;
+    }
+}
+
+CharacterHeuristic.calculateStrict = function(rules) {
+    let grids = new Array(16).fill(true);
+    for (var i in rules) {
+        if (rules[i].grids) {
+            for (let j = 0; j < rules[i].grids.length; j++) {
+                grids[rules[i].grids[j] - 1] = false;
+            }
+        }
+        if (rules[i].quadrants) {
+            for (let j = 0; j < rules[i].quadrants.length; j++) {
+                let q = rules[i].quadrants[j];
+                if (q == 2) {
+                    grids[2] = false;
+                    grids[3] = false;
+                    grids[6] = false;
+                    grids[7] = false;
+                } else if (q == 4) {
+                    grids[0] = false;
+                    grids[1] = false;
+                    grids[4] = false;
+                    grids[5] = false;
+                } else if (q == 6) {
+                    grids[8] = false;
+                    grids[9] = false;
+                    grids[12] = false;
+                    grids[13] = false;
+                } else if (q == 8) {
+                    grids[10] = false;
+                    grids[11] = false;
+                    grids[14] = false;
+                    grids[15] = false;
+                }
+            }
+        }
+    }
+    let r = [];
+    for (let i = 0; i < 16; i++) {
+        if (grids[i]) {
+            r.push(i+1);
+        }
+    }
+    return {
+        maxCount: 0,
+        grids: r
     }
 }
 

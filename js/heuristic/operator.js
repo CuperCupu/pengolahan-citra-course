@@ -83,6 +83,7 @@ character_heuristics.push(new CharacterHeuristic({
 character_heuristics.push(new CharacterHeuristic({
     name: "slash",
     minRatio: 2,
+    maxRatio: 4,
     endPointCount: 2,
     endPoints: [
         {
@@ -315,7 +316,7 @@ character_heuristics.push(new CharacterHeuristic({
 // greater
 character_heuristics.push(new CharacterHeuristic({
     name: "greater-than",
-    minRatio: 0.9,
+    minRatio: 0.8,
     maxRatio: 1.8,
     endPointCount: 3,
     endPoints: [
@@ -346,13 +347,22 @@ character_heuristics.push(new CharacterHeuristic({
                 7, 8, 1, 2, 3
             ]
         },
+        {
+            maxCount: 0,
+            grids: [
+                2, 3, 4,
+                5, 6,
+                9, 10,
+                14, 15, 16
+            ],
+        },
     ],
     turningPoints: [
         {
             minCount: 0,
             maxCount: 1,
             grids: [
-                8, 12
+                8, 12,
             ]
         },
         {
@@ -368,7 +378,16 @@ character_heuristics.push(new CharacterHeuristic({
             grids: [
                 13
             ]
-        }
+        },
+        {
+            maxCount: 0,
+            grids: [
+                2, 3, 4,
+                5, 6, 7,
+                9, 10, 11,
+                14, 15, 16
+            ]
+        },
     ],
     maxLengthRatio: 1.2
 }));
@@ -397,7 +416,16 @@ character_heuristics.push(new CharacterHeuristic({
             directions: [
                 4, 5, 6, 7, 8
             ]
-        }
+        },
+        {
+            maxCount: 0,
+            grids: [
+                2, 3, 4,
+                5, 6, 7, 8,
+                9, 10, 11, 12,
+                14, 15, 16
+            ],
+        },
     ],
     turningPoints: [
         {
@@ -419,7 +447,16 @@ character_heuristics.push(new CharacterHeuristic({
             grids: [
                 13
             ]
-        }
+        },
+        {
+            maxCount: 0,
+            grids: [
+                2, 3, 4,
+                5, 6, 7,
+                9, 10, 11,
+                14, 15, 16
+            ]
+        },
     ],
 }));
 

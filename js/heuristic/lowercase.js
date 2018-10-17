@@ -10,6 +10,7 @@ character_heuristics.push(new CharacterHeuristic({
 character_heuristics.push(new CharacterHeuristic({
     name: "y",
     minRatio: 0.8,
+    strict: true,
     endPoints: [
         {
             minCount: 1,
@@ -39,10 +40,22 @@ character_heuristics.push(new CharacterHeuristic({
             ],
         },
         {
-            maxCount: 0,
+            maxCount: 1,
             grids: [
-                16
+                13, 14
             ],
+            directions: [
+                4, 5, 6
+            ]
+        },
+        {
+            maxCount: 1,
+            grids: [
+                15
+            ],
+            directions: [
+                8, 1, 2
+            ]
         },
     ],
     turningPoints: [
@@ -72,4 +85,33 @@ character_heuristics.push(new CharacterHeuristic({
             ]
         }
     ],
+}));
+
+
+// l
+character_heuristics.push(new CharacterHeuristic({
+    name: "l",
+    minRatio: 30,
+    endPointCount: 2,
+    endPoints: [
+        {
+            count: 1,
+            quadrants: [
+                3, 4
+            ],
+            direction: [
+                3
+            ]
+        },
+        {
+            count: 1,
+            quadrants: [
+                6, 7
+            ],
+            direction: [
+                7
+            ]
+        }
+    ],
+    turningPointCount: 0,
 }));

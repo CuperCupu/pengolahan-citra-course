@@ -124,46 +124,46 @@ character_heuristics.push(new CharacterHeuristic({
 }));
 
 // Symbol semi colon
-character_heuristics.push(new CharacterHeuristic({
-    name: "semi colon",
-    minRatio: 1.4,
-    endPointCount: 4,
-    endPoints: [
-        {
-            count: 2,
-            quadrants: [
-                    6, 7, 8
-            ]
-        },
-        {
-            minCount: 1,
-            quadrants: [
-                2, 3, 4
-            ],
-            directions: [
-                1, 2, 3, 4, 5
-            ]
-        },
-        {
-            minCount: 1,
-            quadrants: [
-                2, 3, 4
-            ],
-            directions: [
-                5, 6, 7, 8, 1
-            ]
-        }
-    ],
-    turningPoints: [
-        {
-            minCount: 0,
-            maxCount: 1,
-            quadrants: [
-                6, 7, 8
-            ]
-        }
-    ],
-}));
+// character_heuristics.push(new CharacterHeuristic({
+//     name: "semi colon",
+//     minRatio: 1.4,
+//     endPointCount: 4,
+//     endPoints: [
+//         {
+//             count: 2,
+//             quadrants: [
+//                     6, 7, 8
+//             ]
+//         },
+//         {
+//             minCount: 1,
+//             quadrants: [
+//                 2, 3, 4
+//             ],
+//             directions: [
+//                 1, 2, 3, 4, 5
+//             ]
+//         },
+//         {
+//             minCount: 1,
+//             quadrants: [
+//                 2, 3, 4
+//             ],
+//             directions: [
+//                 5, 6, 7, 8, 1
+//             ]
+//         }
+//     ],
+//     turningPoints: [
+//         {
+//             minCount: 0,
+//             maxCount: 1,
+//             quadrants: [
+//                 6, 7, 8
+//             ]
+//         }
+//     ],
+// }));
 
 // Symbol Apostrophe
 character_heuristics.push(new CharacterHeuristic({
@@ -280,4 +280,106 @@ character_heuristics.push(new CharacterHeuristic({
         },
     ],
     maxLengthRatio: 1.2,
+}));
+
+// underscore
+character_heuristics.push(new CharacterHeuristic({
+    name: "underscore",
+    maxRatio: 0.45,
+    endPointCount: 2,
+    endPoints: [
+        {
+            count: 1,
+            grids: [
+                1, 5, 9, 13
+            ],
+            directions: [
+                3, 4, 5, 6, 7
+            ]
+        },
+        {
+            count: 1,
+            grids: [
+                4, 8, 12, 16
+            ],
+            directions: [
+                7, 8, 1, 2, 3
+            ]
+        },
+    ],
+    maxLengthRatio: 1.1
+}));
+
+
+// hashtag
+character_heuristics.push(new CharacterHeuristic({
+    name: "hashtag",
+    strict: true,
+    endPoints: [
+        {
+            minCount: 1,
+            maxCount: 2,
+            grids: [
+                2, 3, 4
+            ],
+        },
+        {
+            minCount: 1,
+            maxCount: 2,
+            grids: [
+                8, 12, 16
+            ],
+        },
+        {
+            minCount: 1,
+            maxCount: 2,
+            grids: [
+                13, 14, 15
+            ],
+        },
+        {
+            minCount: 1,
+            maxCount: 2,
+            grids: [
+                1, 5, 9
+            ],
+        },
+    ],
+    turningPoints: [
+        {
+            minCount: 1,
+            maxCount: 3,
+            quadrants: [
+                2
+            ]
+        },
+        {
+            minCount: 1,
+            maxCount: 3,
+            quadrants: [
+                4
+            ]
+        },
+        {
+            minCount: 1,
+            maxCount: 3,
+            quadrants: [
+                6
+            ]
+        },
+        {
+            minCount: 1,
+            maxCount: 3,
+            quadrants: [
+                8
+            ]
+        },
+        {
+            count: 4,
+            grids: [
+                5, 6, 7, 8,
+                9, 10, 11, 12
+            ]
+        },
+    ]
 }));
