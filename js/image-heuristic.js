@@ -28,7 +28,6 @@ class CharacterHeuristic{
         }
         this.strict = data.strict;
         if (this.strict) {
-            console.log(this.name, CharacterHeuristic.calculateStrict(this.endPoints), CharacterHeuristic.calculateStrict(this.turningPoints));
             this.endPoints.push(CharacterHeuristic.calculateStrict(this.endPoints));
             this.turningPoints.push(CharacterHeuristic.calculateStrict(this.turningPoints));
         }
@@ -37,9 +36,10 @@ class CharacterHeuristic{
         this.custom = data.custom;
         this.minLengthRatio = data.minLengthRatio;
         this.maxLengthRatio = data.maxLengthRatio;
+        this.filled = data.filled || [];
     }
 
-    match(ratio, endPoints, turningPoints, dots, code, trace) {
+    match(ratio, endPoints, turningPoints, dots, code, trace, fills) {
         // Test against ratio.
         if ((this.minRatio != null) && (ratio < this.minRatio)) {
             return false;
@@ -56,9 +56,50 @@ class CharacterHeuristic{
         if ((this.dotCount != null) && (dots.length != this.dotCount)) {
             return false;
         }
-        // Test against end points.
         let match = true;
-        let i = 0;
+        if ((this.endPointMinCount != null) && (this.endPointMaxCount == null)) {
+            match = endPoints.length >= this.endPointMinCount;
+        } else if ((this.endPointMinCount == null) && (this.endPointMaxCount != null)) {
+            match = endPoints.length <= this.endPointMaxCount;
+        } else if ((this.endPointMinCount != null) && (this.endPointMaxCount != null)) {
+            match = endPoints.length >= this.endPointMinCount && endPoints.length <= this.endPointMaxCount;
+        }
+        if ((this.turningMinPointCount != null) && (this.turningMaxPointCount == null)) {
+            match = turningPoints.length >= this.turningMinPointCount;
+        } else if ((this.turningMinPointCount == null) && (this.turningMaxPointCount != null)) {
+            match = turningPoints.length <= this.turningMaxPointCount;
+        } else if ((this.turningMinPointCount != null) && (this.turningMaxPointCount != null)) {
+            match = turningPoints.length >= this.turningMinPointCount && turningPoints.length <= this.turningMaxPointCount;
+        }
+        let i;
+        // Test against fills.
+        i = 0;
+        while ((match) && (i < this.filled.length)) {
+            let rule = this.filled[i];
+            let count = 0;
+            for (let j = 0; j < fills.length; j++) {
+                let p = fills[j];
+                if ((p > 0) && (rule.grids)) {
+                    if (rule.grids.includes(j+1)) {
+                        count++;
+                    }
+                }
+            }
+            if (rule.count != null) {
+                match = count == rule.count;
+            } else if ((rule.minCount != null) && (rule.maxCount == null)) {
+                match = count >= rule.minCount;
+            } else if ((rule.minCount == null) && (rule.maxCount != null)) {
+                match = count <= rule.maxCount;
+            } else if ((rule.minCount != null) && (rule.maxCount != null)) {
+                match = count >= rule.minCount && count <= rule.maxCount;
+            } else {
+                match = count > 0;
+            }
+            i++;
+        }
+        // Test against end points.
+        i = 0;
         while ((match) && (i < this.endPoints.length)) {
             let rule = this.endPoints[i];
             let count = 0;
@@ -129,7 +170,6 @@ class CharacterHeuristic{
             }
             i++;
         }
-
         if ((match) && (endPoints.length == 2) && ((this.minLengthRatio != null) || (this.maxLengthRatio != null))) {
             let dist = realDistanceBetween(endPoints[0].point, endPoints[1].point, trace);
             let r_dist = distanceBetween(endPoints[0].point, endPoints[1].point);
@@ -255,12 +295,12 @@ CharacterHeuristic.matchDot = function(point, rule) {
 
 var character_heuristics = [];
 
-match_all_heuristics = function(ratio, endPoints, turningPoints, dots, code, trace) {
+match_all_heuristics = function(ratio, endPoints, turningPoints, dots, code, trace, fills) {
     let matched = [];
     for (var i in character_heuristics) {
         let h = character_heuristics[i];
         if (!matched.includes(h.name)) {
-            if (h.match(ratio, endPoints, turningPoints, dots, code, trace)) {
+            if (h.match(ratio, endPoints, turningPoints, dots, code, trace, fills)) {
                 matched.push(h.name);
             }
         }
@@ -274,7 +314,7 @@ pointGrid = function(p, bound, gridSize = 4) {
     let space = 1 / gridSize;
     x = Math.floor(x / space);
     y = Math.floor(y / space)
-    return x + (y * gridSize) + 1;
+    return x + (y * gridSize);
 }
 
 findTurningPointsAll = function(b, threshold=0.075) {
@@ -285,143 +325,179 @@ findTurningPointsAll = function(b, threshold=0.075) {
         i %= length;
         return i;
     }
-    threshold = b.size.height * threshold;
-    var t1 = findTurningPointsFromTrace(b);
-    var t2 = findTurningPointsFromTrace2(b);
-    var turningPoints = t1.turningPoints.slice().concat(t2.turningPoints);
-    // var turningPoints = t1.turningPoints.slice();
-    var trace = b.trace;
-    let changed = false;
-    var findNearest = function(p, trace) {
-        var min = trace.length;
-        var idx = -1;
-        for (let i = 0; i < trace.length; i++) {
-            let d = distanceBetween(p, trace[i]);
-            if (d < min) {
-                min = d;
-                idx = i;
+    if (b != null) {
+        threshold = b.size.height * threshold;
+        var t1 = findTurningPointsFromTrace(b);
+        var t2 = findTurningPointsFromTrace2(b);
+        var turningPoints = t1.turningPoints.slice().concat(t2.turningPoints);
+        // var turningPoints = t1.turningPoints.slice();
+        var trace = b.trace;
+        let changed = false;
+        var findNearest = function(p, trace) {
+            var min = trace.length;
+            var idx = -1;
+            for (let i = 0; i < trace.length; i++) {
+                let d = distanceBetween(p, trace[i]);
+                if (d < min) {
+                    min = d;
+                    idx = i;
+                }
             }
+            return idx;
         }
-        return idx;
-    }
-    do {
-        changed = false;
-        let i1 = -1;
-        let i2 = -1;
-        let ti1 = -1;
-        let ti2 = -1;
-        let min = trace.length * 2;
-        let i = 0;
-        while ((!changed) && (i < turningPoints.length)) {
-            let j = 0;
-            while ((!changed) && (j < turningPoints.length)) {
-                if (i != j) {
-                    let idx1 = translate_index(turningPoints[i], t1.sliced, b.code.length);
-                    let idx2 = translate_index(turningPoints[j], t1.sliced, b.code.length);
-                    // let res = realPositionBetween(trace[idx1], trace[idx2], trace);
-                    // if (res.dist < threshold * 2) {
-                    //     if (i > j) {
-                    //         turningPoints.splice(i, 1);
-                    //         turningPoints.splice(j, 1);
-                    //     } else {
-                    //         turningPoints.splice(j, 1);
-                    //         turningPoints.splice(i, 1);
-                    //     }
-                    //     turningPoints.push(Math.round((res.p1 + res.p2) / 2));
-                    //     changed = true;
-                    // }
-                    let dist = distanceBetween(trace[idx1], trace[idx2]);
-                    if (dist < min) {
-                        min = dist;
-                        i1 = idx1;
-                        i2 = idx2;
-                        ti1 = i;
-                        ti2 = j;
+        do {
+            changed = false;
+            let i1 = -1;
+            let i2 = -1;
+            let ti1 = -1;
+            let ti2 = -1;
+            let min = trace.length * 2;
+            let i = 0;
+            while ((!changed) && (i < turningPoints.length)) {
+                let j = 0;
+                while ((!changed) && (j < turningPoints.length)) {
+                    if (i != j) {
+                        let idx1 = translate_index(turningPoints[i], t1.sliced, b.code.length);
+                        let idx2 = translate_index(turningPoints[j], t1.sliced, b.code.length);
+                        // let res = realPositionBetween(trace[idx1], trace[idx2], trace);
+                        // if (res.dist < threshold * 2) {
+                        //     if (i > j) {
+                        //         turningPoints.splice(i, 1);
+                        //         turningPoints.splice(j, 1);
+                        //     } else {
+                        //         turningPoints.splice(j, 1);
+                        //         turningPoints.splice(i, 1);
+                        //     }
+                        //     turningPoints.push(Math.round((res.p1 + res.p2) / 2));
+                        //     changed = true;
+                        // }
+                        let dist = distanceBetween(trace[idx1], trace[idx2]);
+                        if (dist < min) {
+                            min = dist;
+                            i1 = idx1;
+                            i2 = idx2;
+                            ti1 = i;
+                            ti2 = j;
+                        }
                     }
+                    j++;
                 }
-                j++;
+                i++;
             }
-            i++;
-        }
-        if ((ti1 > -1) && ((min < threshold * 2))) {
-            // turningPoints.splice(j, 1);
-            if (ti1 > ti2) {
-                turningPoints.splice(ti1, 1);
-                turningPoints.splice(ti2, 1);
-            } else {
-                turningPoints.splice(ti2, 1);
-                turningPoints.splice(ti1, 1);
-            }
-            let p = new Point(Math.round((trace[i1].x + trace[i2].x) / 2), Math.round((trace[i1].y + trace[i2].y) / 2));
-            let idx = findNearest(p, trace);
-            if (idx > -1) {
-                if (t1.sliced > -1) {
-                    idx -= t1.sliced;
+            if ((ti1 > -1) && ((min < threshold * 2))) {
+                // turningPoints.splice(j, 1);
+                if (ti1 > ti2) {
+                    turningPoints.splice(ti1, 1);
+                    turningPoints.splice(ti2, 1);
+                } else {
+                    turningPoints.splice(ti2, 1);
+                    turningPoints.splice(ti1, 1);
                 }
-                turningPoints.push(idx);
-            } else {
-                turningPoints.push(i1);
+                let p = new Point(Math.round((trace[i1].x + trace[i2].x) / 2), Math.round((trace[i1].y + trace[i2].y) / 2));
+                let idx = findNearest(p, trace);
+                if (idx > -1) {
+                    if (t1.sliced > -1) {
+                        idx -= t1.sliced;
+                    }
+                    turningPoints.push(idx);
+                } else {
+                    turningPoints.push(i1);
+                }
+                changed = true;
             }
-            changed = true;
+        } while (changed);
+        return {
+            turningPoints: turningPoints,
+            sliced: t1.sliced
         }
-    } while (changed);
-    return {
-        turningPoints: turningPoints,
-        sliced: t1.sliced
     }
+    return {
+        turningPoints: [],
+        sliced: -1
+    }
+}
+
+findFills = function(image, bound, grid_dimension=4) {
+    let fills = new Array(grid_dimension * grid_dimension).fill(0);
+    for (let i = 0; i < image.data.length; i += 4) {
+        if (image.data[i] > 0) {
+            let x = Math.floor((i % (image.width * 4) / 4));
+            let y = Math.floor(i / image.width / 4);
+            let idx = pointGrid({
+                x: x,
+                y: y
+            }, bound);
+            fills[idx]++;
+        }
+    }
+    return fills;
 }
 
 match_all_heuristics_from_image = function(image) {
     var b = findBoundary(image);
-    var t = findTurningPointsAll(b);
-    s = t.sliced;
-    if (s < 0) {
-        s = 0;
-    }
-    var translate_index = function(i, off, length) {
-        if (off > -1) {
-            i += off;
+    if (b != null) {
+        var t = findTurningPointsAll(b);
+        s = t.sliced;
+        if (s < 0) {
+            s = 0;
         }
-        i %= length;
-        return i;
+        var translate_index = function(i, off, length) {
+            if (off > -1) {
+                i += off;
+            }
+            i %= length;
+            return i;
+        }
+        let bound = findBound(image);
+        let ratio = bound.height / bound.width;
+        let center = {
+            x: bound.min.x + (bound.width / 2),
+            y: bound.min.y + (bound.height / 2)
+        }
+        let endpoints = [];
+        let e = findEndPoints(image);
+        for (var i in e) {
+            endpoints.push({
+                point: e[i],
+                quadrant: categorizeQuadrant(getOffsetFromCenter(e[i].x, e[i].y, center)),
+                direction: endPointDirection(e[i].x, e[i].y, image),
+                grid: pointGrid(e[i], bound) + 1,
+            });
+        }
+        let turningpoints = [];
+        for (let i in t.turningPoints) {
+            let j = translate_index(t.turningPoints[i], t.sliced, b.code.length);
+            turningpoints.push({
+                point: b.trace[j],
+                quadrant: categorizeQuadrant(getOffsetFromCenter(b.trace[j].x, b.trace[j].y, center)),
+                grid: pointGrid(b.trace[j], bound) + 1,
+            });
+        }
+        let d = findDots(image);
+        let dots = []
+        for (let i in d) {
+            dots.push({
+                point: d[i],
+                quadrant: categorizeQuadrant(getOffsetFromCenter(d[i].x, d[i].y, center)),
+                grid: pointGrid(d[i], bound) + 1,
+            });
+        }
+        let grid_dimension = 4;
+        // let fills = new Array(grid_dimension * grid_dimension).fill(0);
+        // for (let i in b.trace) {
+        //     let pos = pointGrid(b.trace[i], bound);
+        //     fills[pos]++;
+        // }
+        let fills = findFills(image, bound, grid_dimension);
+        for (let i = 0; i < fills.length; i++) {
+            fills[i] /= (bound.width / grid_dimension) * (bound.height /grid_dimension);
+        }
+        console.log(fills);
+        console.log(endpoints);
+        console.log(turningpoints);
+        console.log(dots);
+        console.log(ratio);
+        return match_all_heuristics(ratio, endpoints, turningpoints, dots, b.code, b.trace, fills);
     }
-    let bound = findBound(image);
-    let ratio = bound.height / bound.width;
-    let center = {
-        x: bound.min.x + (bound.width / 2),
-        y: bound.min.y + (bound.height / 2)
-    }
-    let endpoints = [];
-    let e = findEndPoints(image);
-    for (var i in e) {
-        endpoints.push({
-            point: e[i],
-            quadrant: categorizeQuadrant(getOffsetFromCenter(e[i].x, e[i].y, center)),
-            direction: endPointDirection(e[i].x, e[i].y, image),
-            grid: pointGrid(e[i], bound),
-        });
-    }
-    let turningpoints = [];
-    for (var i in t.turningPoints) {
-        let j = translate_index(t.turningPoints[i], t.sliced, b.code.length);
-        turningpoints.push({
-            point: b.trace[j],
-            quadrant: categorizeQuadrant(getOffsetFromCenter(b.trace[j].x, b.trace[j].y, center)),
-            grid: pointGrid(b.trace[j], bound),
-        });
-    }
-    let d = findDots(image);
-    let dots = []
-    for (var i in d) {
-        dots.push({
-            point: d[i],
-            quadrant: categorizeQuadrant(getOffsetFromCenter(d[i].x, d[i].y, center)),
-            grid: pointGrid(d[i], bound),
-        });
-    }
-    console.log(endpoints);
-    console.log(turningpoints);
-    console.log(dots);
-    console.log(ratio);
-    return match_all_heuristics(ratio, endpoints, turningpoints, dots, b.code, b.trace);
+    return [];
 }

@@ -1,4 +1,4 @@
-function setChannel(r, g, b) {
+function setChannel(image, r, g, b) {
     try {
         if (counts) {
             newimg = ctx.createImageData(image.width, image.height);
@@ -20,7 +20,7 @@ function setChannel(r, g, b) {
     }
 }
 
-function setGrayscale() {
+function setGrayscale(image) {
     try {
         if (counts) {
             for (var i = 0; i < 4; i++) {
@@ -45,7 +45,7 @@ function setGrayscale() {
     }
 }
 
-function inverseColor() {
+function inverseColor(image) {
     try {
         if (counts) {
             for (var i = 0; i < 3; i++) {

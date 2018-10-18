@@ -1,4 +1,4 @@
-function setContrast(distance, exp=1) {
+function setContrast(image, distance, exp=1) {
     try {
         if (counts) {
             var sum = 0;
@@ -8,14 +8,14 @@ function setContrast(distance, exp=1) {
                 total += i * counts[3][i];
             }
             var center = Math.round(total / sum);
-            return contrastStretch(0, 255, center - distance / 2, center + distance / 2, exp);
+            return contrastStretch(image, 0, 255, center - distance / 2, center + distance / 2, exp);
         }
     } catch(err) {
         alert("contrast stretch: " + err.message);
     }
 }
 
-function contrastStretch(min, max, min2, max2, exp=1) {
+function contrastStretch(image, min, max, min2, max2, exp=1) {
     try {
         if (counts) {
             var range = max - min;

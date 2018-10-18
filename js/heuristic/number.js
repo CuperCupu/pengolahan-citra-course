@@ -190,7 +190,22 @@ character_heuristics.push(new CharacterHeuristic({
 character_heuristics.push(new CharacterHeuristic({
     name: "3",
     minRatio: 1.4,
+    maxRatio: 2,
     strict: true,
+    filled: [
+        {
+            minCount: 1,
+            grids: [
+                4
+            ]
+        },
+        {
+            minCount: 1,
+            grids: [
+                16
+            ]
+        }
+    ],
     endPoints: [
         {
             count: 1,
@@ -236,18 +251,17 @@ character_heuristics.push(new CharacterHeuristic({
         },
         {
             maxCount: 1,
-            quadrants: [
+            grids: [
                 1, 2
             ]
         },
         {
             maxCount: 1,
-            quadrants: [
+            grids: [
                 13, 14
             ]
         }
     ],
-    minLengthRatio: 2.2,
 }));
 
 // Number 4
@@ -382,6 +396,15 @@ character_heuristics.push(new CharacterHeuristic({
 // Number 5
 character_heuristics.push(new CharacterHeuristic({
     name: "5",
+    minRatio: 0.7,
+    filled: [
+        {
+            minCount: 2,
+            grids: [
+                8, 12, 16
+            ]
+        }
+    ],
     endPointCount: 2,
     endPoints: [
         {
@@ -430,6 +453,29 @@ character_heuristics.push(new CharacterHeuristic({
 // Number 6
 character_heuristics.push(new CharacterHeuristic({
     name: "6",
+    filled: [
+        {
+            minCount: 1,
+            grids: [
+                7, 8,
+                12,
+            ]
+        },
+        {
+            minCount: 1,
+            grids: [
+                12,
+                15, 16
+            ]
+        },
+        {
+            minCount: 1,
+            grids: [
+                9, 
+                13, 14
+            ]
+        }
+    ],
     endPointCount: 1,
     endPoints: [
         {
@@ -470,12 +516,12 @@ character_heuristics.push(new CharacterHeuristic({
 // Number 7
 character_heuristics.push(new CharacterHeuristic({
     name: "7",
-    endPointCount: 2,
+    strict: true,
     endPoints: [
         {
             count: 1,
             grids: [
-                1
+                1, 5
             ]
         },
         {
@@ -486,6 +532,12 @@ character_heuristics.push(new CharacterHeuristic({
         }
     ],
     turningPoints: [
+        {
+            maxCount: 1,
+            grids: [
+                1
+            ]
+        },
         {
             count: 1,
             grids: [
@@ -505,11 +557,25 @@ character_heuristics.push(new CharacterHeuristic({
 character_heuristics.push(new CharacterHeuristic({
     name: "8",
     endPointCount: 0,
+    filled: [
+        {
+            minCount: 1,
+            grids: [
+                2, 3
+            ]
+        },
+        {
+            minCount: 1,
+            grids: [
+                14, 15
+            ]
+        }
+    ],
     turningPoints: [
         {
             count: 1,
             grids: [
-                5, 6, 9, 10
+                5, 6, 9, 10,
             ]
         },
         {
@@ -521,9 +587,59 @@ character_heuristics.push(new CharacterHeuristic({
     ]
 }));
 
+// Number 8
+character_heuristics.push(new CharacterHeuristic({
+    name: "8",
+    endPointCount: 0,
+    filled: [
+        {
+            minCount: 1,
+            grids: [
+                2, 3
+            ]
+        },
+        {
+            minCount: 1,
+            grids: [
+                14, 15
+            ]
+        }
+    ],
+    turningPoints: [
+        {
+            count: 1,
+            grids: [
+                6, 9,
+                8, 11, 
+            ]
+        }
+    ]
+}));
+
 // Number 9
 character_heuristics.push(new CharacterHeuristic({
     name: "9",
+    strict: true,
+    filled: [
+        {
+            minCount: 1,
+            grids: [
+                1, 2, 5
+            ]
+        },
+        {
+            minCount: 1,
+            grids: [
+                5, 9, 10
+            ]
+        },
+        {
+            minCount: 1,
+            grids: [
+                3, 4, 8
+            ]
+        }
+    ],
     endPointCount: 1,
     endPoints: [
         {

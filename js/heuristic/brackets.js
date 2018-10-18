@@ -2,6 +2,7 @@
 character_heuristics.push(new CharacterHeuristic({
     name: "open parentheses",
     minRatio: 2,
+    maxRatio: 10,
     endPointCount: 2,
     endPoints: [
         {
@@ -29,6 +30,7 @@ character_heuristics.push(new CharacterHeuristic({
 character_heuristics.push(new CharacterHeuristic({
     name: "close parentheses",
     minRatio: 2,
+    maxRatio: 10,
     endPointCount: 2,
     endPoints: [
         {
@@ -37,7 +39,7 @@ character_heuristics.push(new CharacterHeuristic({
                 1
             ],
             directions: [
-                4, 5, 6
+                3, 4, 5, 6, 7
             ]
         },
         {
@@ -46,7 +48,7 @@ character_heuristics.push(new CharacterHeuristic({
                 13
             ],
             directions: [
-                4, 5, 6
+                3, 4, 5, 6, 7
             ]
         }
     ]

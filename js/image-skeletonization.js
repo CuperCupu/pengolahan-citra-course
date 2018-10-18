@@ -1,33 +1,3 @@
-function preprocessImage() {
-    try {
-        if (counts) {
-            for (var i = 0; i < 3; i++) {
-                color_chart.data.datasets[i].data = 255 - counts[i];
-            }
-            color_chart.update();
-            newimg = ctx.createImageData(image.width, image.height);
-            for (var i = 0; i < newimg.data.length; i += 4) {
-                var val = Math.round((image.data[i] + image.data[i + 1] + image.data[i + 2]) / 3);
-                if (val >= 128) {
-                    val = 255;
-                } else {
-                    val = 0;
-                }
-                newimg.data[i] = val;
-                newimg.data[i + 1] = val;
-                newimg.data[i + 2] = val;
-                newimg.data[i + 3] = 255;
-            }
-            return newimg;
-        } else {
-            alert("Please upload an image or take a picture with camera.")
-        }
-    } catch(err) {
-        alert("inversing: " + err.message);
-    }
-}
-
-
 function findBound(img) {
     var min = {
         x: img.width,
@@ -107,6 +77,7 @@ function categorizeQuadrant(off) {
 
 function preprocessImage(img) {
     try {
+        img = setContrast(img, 255, 1.5);
         var newimg = ctx.createImageData(img.width, img.height);
         for (var i = 0; i < img.data.length; i += 4) {
             let grey = (img.data[i] + img.data[i + 1] + img.data[i + 2]) / 3;

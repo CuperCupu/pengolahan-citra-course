@@ -449,7 +449,7 @@ function findTurningPointsFromTrace(boundary, threshold=0.03) {
 }
 
 
-function findTurningPointsFromTrace2(boundary, threshold=0.1) {
+function findTurningPointsFromTrace2(boundary, threshold=0.1, sensitivity=1.14, offset=0.77) {
     let trace = boundary.trace;
     let code = boundary.code;
     let length = trace.length;
@@ -494,8 +494,8 @@ function findTurningPointsFromTrace2(boundary, threshold=0.1) {
         // let r_dist = threshold;
         let dist = distanceBetween(trace[tail], trace[head]);
         let ratio = r_dist / dist;
-        if ((ratio > 1.14) && (ratio < 20)) {
-            let j = Math.round((head - tail) * (0.77)) + tail;
+        if ((ratio > sensitivity) && (ratio < 20)) {
+            let j = Math.round((head - tail) * (offset)) + tail;
             turningPoints.push(j);
             tail = j + 1;
             shiftHead();

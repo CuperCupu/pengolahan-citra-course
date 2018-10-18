@@ -51,35 +51,35 @@ $(document).ready(function() {
 
     // Miscellaneous
     $('#button-misc-vivid').click(function() {
-        image = setContrast(150);
+        image = setContrast(image, 150);
     });
 
     $('#button-misc-contrast').click(function() {
-        image = setContrast(255, 1.5);
+        image = setContrast(image, 255, 1.5);
     });
 
     $('#button-misc-invert').click(function() {
-        image = inverseColor();
+        image = inverseColor(image, );
     });
 
     // Channel
     
     // Red
     $('#button-channel-red').click(function() {
-        image = setChannel(1, 0, 0);
+        image = setChannel(image, 1, 0, 0);
     });
     // Green
     $('#button-channel-green').click(function() {
-        image = setChannel(0, 1, 0);
+        image = setChannel(image, 0, 1, 0);
     });
     // Bleu
     $('#button-channel-blue').click(function() {
-        image = setChannel(0, 0, 1);
+        image = setChannel(image, 0, 0, 1);
     });
 
     // Grayscale
     $('#button-channel-grayscale').click(function() {
-        image = setGrayscale();
+        image = setGrayscale(image);
     });
 
 });
