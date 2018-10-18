@@ -426,6 +426,40 @@ character_heuristics.push(new CharacterHeuristic({
     maxLengthRatio: 1.1
 }));
 
+// exclamation
+character_heuristics.push(new CharacterHeuristic({
+    name: "exclamation",
+    minRatio: 50,
+    endPointCount: 2,
+    endPoints: [
+        {
+            count: 1,
+            grids: [
+                1, 2, 3, 4
+            ],
+            directions: [
+                2, 3, 4
+            ]
+        },
+        {
+            count: 1,
+            grids: [
+                9, 10, 11, 12, 13
+            ],
+            directions: [
+                6, 7, 8
+            ]
+        },
+    ],
+    dots: [
+        {
+            count: 1,
+            grids: [
+                13, 14, 15, 16
+            ],
+        }
+    ],
+}));
 
 // hashtag
 character_heuristics.push(new CharacterHeuristic({

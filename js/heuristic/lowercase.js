@@ -592,6 +592,207 @@ character_heuristics.push(new CharacterHeuristic({
     ]
 }));
 
+//i
+character_heuristics.push(new CharacterHeuristic({
+    name: "i",
+    strict: true,
+    minRatio: 20,
+    endPoints: [
+        {
+            count: 1,
+            grids: [
+                5, 6, 7, 8
+            ],
+        },
+        {
+            count: 1,            
+            grids: [
+                13, 14, 15, 16
+            ],
+        },
+    ],
+    dots: [
+        {
+            count: 1,
+            grids: [
+                1, 2, 3, 4
+            ]
+        },
+    ]
+}));
+
+character_heuristics.push(new CharacterHeuristic({
+    name: "i",
+    minRatio: 1,
+    endPoints: [
+        {
+            count: 1,
+            grids: [
+                5, 6, 7, 8
+            ],
+        },
+        {
+            count: 1,            
+            grids: [
+                13, 14
+            ],
+        },
+        {
+            count: 1,            
+            grids: [
+                16
+            ],
+        },
+    ],
+    turningPoints: [
+        {
+            count: 1,
+            grids: [
+                6, 7, 8
+            ],
+            count: 1,
+            grids: [
+                14, 15
+            ],
+        }
+    ],
+    dots: [
+        {
+            count: 1,
+            grids: [
+                1, 2, 3, 4
+            ]
+        },
+    ]
+}));
+
+character_heuristics.push(new CharacterHeuristic({
+    name: "i",
+    minRatio: 1,
+    endPoints: [
+        {
+            count: 1,
+            grids: [
+                5, 6, 7, 8
+            ],
+        },
+        {
+            count: 1,            
+            grids: [
+                16
+            ],
+        },
+    ],
+    turningPoints: [
+        {
+            count: 1,
+            grids: [
+                7, 8
+            ]
+        }
+    ],
+    dots: [
+        {
+            count: 1,
+            grids: [
+                1, 2, 3, 4
+            ]
+        },
+    ]
+}));
+//j
+character_heuristics.push(new CharacterHeuristic({
+    name: "j",
+    strict: true,
+    minRatio: 2,
+    endPoints: [
+        {
+            count: 1,
+            grids: [
+               3, 4, 7, 8
+            ],
+        },
+        {
+            count: 1,            
+            grids: [
+                9, 13
+            ],
+        },
+    ],
+    dots: [
+        {
+            count: 1,
+            grids: [
+                3, 4
+            ]
+        },
+    ]
+}));
+
+character_heuristics.push(new CharacterHeuristic({
+    name: "j",
+    strict: true,
+    // filled: [
+    //     {
+    //         minCount: 1,
+    //         grids: [
+    //             4
+    //         ]
+    //     },
+    //     {
+    //         maxCount: 4,
+    //         grids: [
+    //             3, 4,
+    //             7, 8,
+    //             11, 12
+    //         ]
+    //     },
+    //     {
+    //         minCount: 2,
+    //         grids: [
+    //             14, 15
+    //         ]
+    //     }
+    // ],
+    endPoints: [
+        {
+            minCount: 1,
+            maxCount: 2,
+            grids: [
+                1, 2, 5, 6
+            ],
+            directions: [
+                1, 2, 3, 4, 5
+            ]
+        },
+        {
+            count: 1,
+            grids: [
+                9, 13
+            ],
+            directions: [
+                1, 2, 3, 4, 5, 6
+            ]
+        }
+    ],
+    turningPoints: [
+        {
+            maxCount: 1,
+            grids: [
+                4, 8
+            ]
+        },
+    ],
+    dots: [
+        {
+            count: 1,
+            grids: [
+                3, 4
+            ]
+        },
+    ],
+}));
+
 // k
 character_heuristics.push(new CharacterHeuristic({
     name: "k",

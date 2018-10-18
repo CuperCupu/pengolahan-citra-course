@@ -26,6 +26,8 @@ $(document).ready(function() {
                 var crucialPoints = findCrucialPoints(image);
                 var triplePoints = findTriplePoints(image);
                 image = removeFakeLinesThreshold(image, endPoints, triplePoints, crucialPoints);
+                image = removeSuspectOneDot(image, endPoints);
+                var onePoints = getOnePoints(image);
             } else if (stage == 5) {
                 var b = findBoundary(image);
                 var t = findTurningPointsAll(b);
