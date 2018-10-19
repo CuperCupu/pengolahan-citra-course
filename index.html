@@ -2,12 +2,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="description" content="Image processing">
-    <meta name="keywords" content="Image Processing, Equalization, Contrast Stretching, Histogram Specification">
+    <meta name="keywords" content="Image Processing, Equalization, Contrast Stretching, Histogram Specification, Image Recognition, Zhang Suen">
     <meta name="author" content="Suhendi">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Image Processor</title>
     <link rel="stylesheet" href="css/bootstrap.min.css">
     <link rel="stylesheet" href="css/style.css">
+    <link rel="icon" href="../icon.png" type="image/png"/>
+    <link rel="shortcut icon" href="../icon.png" type="image/png"/>
     <script src="jslib/jquery-3.3.1.min.js"></script>
     <script src="jslib/popper.min.js"></script>
     <script src="jslib/bootstrap.min.js"></script>
@@ -36,11 +38,11 @@
 <body>
     <video width=640 height=480 id="video" style="display: none;" controls autoplay></video>
     <div class="container">
-        <div class="row d-flex justify-content-center mb-2 mt-2">
-            <h1>Image Processor</h1>
+        <div class="row d-flex justify-content-center mb-2 mt-2 title">
+            <h1 class="display-4">Image Processing and Recognition</h1>
         </div>
         <div class="row d-flex ml-1 mr-1">
-            <div class="col-4">
+            <div class="col-4 mr-1">
                 <div id="snapshot" class="row d-flex mt-1">
                     <button id="button-webcam-start" class="col btn btn-dark">Start Webcam</button> 
                     <div id="webcam-control" class="col d-none" style="padding: 0;">
@@ -157,8 +159,8 @@
                 <div class="row d-flex justify-content-center align-items-center">
                     <canvas class="image-box col-lg-5 col-md-8 col-12" id="image_canvas" width="400" height="400"></canvas>
                     <canvas class="image-box col-lg-5 col-md-8 col-12" id="image_canvas_2" width="400" height="400"></canvas>
-                    <canvas class="col-lg-6 col-md-8 col-12" id="main_chart" width="400" height="400"></canvas>
-                    <canvas class="col-lg-6 col-md-8 col-12" id="spec_chart" width="400" height="400"></canvas>
+                    <canvas class="col-lg-5 col-md-8 col-12 image-box" id="main_chart" width="400" height="400"></canvas>
+                    <canvas class="col-lg-5 col-md-8 col-12 image-box" id="spec_chart" width="400" height="400"></canvas>
                 </div>
             </div>
         </div>

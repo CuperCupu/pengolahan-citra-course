@@ -86,6 +86,7 @@ function snapshot() {
         canvas2.width = width;
         canvas2.height = height;
         ctx.drawImage(video, 0, 0);
+        image_default = ctx.getImageData(0, 0, canvas.width, canvas.height);
         image = ctx.getImageData(0, 0, canvas.width, canvas.height);
         ctx2.putImageData(image, 0, 0);
         counts = countPixels(image);

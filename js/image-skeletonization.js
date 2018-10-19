@@ -451,6 +451,7 @@ neighboursStraight = [[[1, -1], [1, 0], [1, 1]], [[1, 1], [0, 1], [-1, 1]], [[-1
 // }
 
 function removeSuspectOneDot(img, endPoints){
+    var detected = false;
     minDistace = 9999;
     var tempPointer = [];
     for (let i = 0; i < endPoints.length-1; i++){
@@ -459,8 +460,12 @@ function removeSuspectOneDot(img, endPoints){
                 minDistace = diagonalLength(endPoints[i], endPoints[j], img);
                 point1 = endPoints[i];
                 point2 = endPoints[j];
+                detected = true;
             }
         }
+    }
+    if (!detected) {
+        return img;
     }
     trace = findBoundary(img).trace;
     bound = findBound(img);
