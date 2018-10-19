@@ -1009,15 +1009,15 @@ character_heuristics.push(new CharacterHeuristic({
     strict: true,
     filled: [
         {
-            minCount: 1,
+            minCount: 3,
             grids: [
-                16, 12
+                16, 12, 8
             ]
          },
         {
-            minCount: 1,
+            minCount: 3,
             grids: [
-                13, 9
+                13, 9, 5
             ]
         },
         {
@@ -1158,5 +1158,79 @@ character_heuristics.push(new CharacterHeuristic({
                 13, 14
             ]
         }
+    ],
+}));
+
+
+// t
+character_heuristics.push(new CharacterHeuristic({
+    name: "t",
+    minRatio: 1.2,
+    filled: [
+        {
+            minCount: 1,
+            grids: [
+                1, 2, 3
+            ]
+        },
+        {
+            minCount: 1,
+            grids: [
+                5, 6, 7,
+            ]
+        },
+        {
+            minCount: 1,
+            grids: [
+                9, 10, 11
+            ]
+        },
+        {
+            minCount: 1,
+            grids: [
+                13, 14, 15
+            ]
+        }
+    ],
+    endPoints: [
+        {
+            minCount: 1,
+            grids: [
+                1, 2, 3
+            ]
+        },
+        {
+            maxCount: 1,
+            grids: [
+                7, 8, 4
+            ]
+        },
+        {
+            minCount: 0,
+            grids: [
+                5, 6, 1
+            ]
+        },
+        {
+            maxCount: 2,
+            grids: [
+                1, 2, 3, 5, 6
+            ]
+        },
+    ],
+    turningPoints: [
+        {
+            count: 1,
+            grids: [
+                1, 2, 3,
+                5, 6, 7,
+            ]
+        },
+        {
+            maxCount: 1,
+            grids: [
+                13, 14, 15
+            ]
+        },
     ],
 }));

@@ -544,7 +544,7 @@ character_heuristics.push(new CharacterHeuristic({
         {
             maxCount: 0,
             grids: [
-                13
+                1, 2, 13
             ]
         }
     ]

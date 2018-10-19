@@ -1,6 +1,8 @@
 // Operator plus
 character_heuristics.push(new CharacterHeuristic({
     name: "plus",
+    minRatio: 0.5,
+    maxRatio: 1.5,
     filled: [
         {
             maxCount: 1,
