@@ -54,24 +54,34 @@
     font-size: 3rem;
 }
 
-@media (max-width: 1000px) {
+@media (max-aspect-ratio: 2/1) {
     .title {
         font-size: 2rem;
     }
 }
 
-@media (max-width: 780px) {
+@media (max-aspect-ratio: 1/1) {
     .title {
         font-size: 1.5rem;
     }
 }
 
-@media (max-width: 500px) {
+@media (max-aspect-ratio: 1/2) {
     .title {
         font-size: 1.2rem;
     }
 }
 
+@media (max-aspect-ratio: 2/3) {
+    .title {
+        font-size: 1rem;
+    }
+}
+
 body {
     background-color: #b8c0c9;
+}
+
+#recognize-result {
+    word-wrap: break-word;
 }
