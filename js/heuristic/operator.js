@@ -746,3 +746,85 @@ character_heuristics.push(new CharacterHeuristic({
         }
     ],
 }));
+
+// *
+character_heuristics.push(new CharacterHeuristic({
+    name: "asterisk",
+    turningPoints: [
+        {
+            minCount: 1,
+            grids: [
+                6, 7, 10, 11
+            ]
+        }
+    ],
+    endPoints: [
+        {
+            minCount: 5,
+            maxCount: 8,
+        },
+        {
+            minCount: 1,
+            grids: [
+                1, 2, 5
+            ]
+        },
+        {
+            minCount: 1,
+            grids: [
+                3, 4, 8
+            ]
+        },
+        {
+            minCount: 1,
+            grids: [
+                9, 13, 14
+            ]
+        },
+        {
+            minCount: 1,
+            grids: [
+                12, 15, 16
+            ]
+        }
+    ],
+    custom: function(params) {
+        let center = {
+            x: (params.bound.max.x + params.bound.min.x) / 2,
+            y: (params.bound.max.y + params.bound.min.y) / 2,
+        };
+        let nearestTurningPoint = null;
+        let dist = params.bound.diagonal;
+        for (let i = 0; i < params.turningPoints.length; i++) {
+            let d = distanceBetween(params.turningPoints[i].point, center);
+            if (d < dist) {
+                dist = d;
+                nearestTurningPoint = params.turningPoints[i];
+            }
+        }
+        if (nearestTurningPoint == null) {
+            return false;
+        }
+        center = nearestTurningPoint.point;
+        let match = true;
+        let i = 0;
+        let radius = Math.max(params.bound.width, params.bound.height) / 2;
+        let minRadius = radius * 0.7;
+        let maxRadius = radius * 1.3;
+        let count = 0;
+        while ((match) && (i < params.endPoints.length)) {
+            let d = distanceBetween(params.endPoints[i].point, center);
+            let r = realDistanceBetween(params.endPoints[i].point, center, params.trace);
+            let l_ratio = r/d;
+            if ((l_ratio < 1.2) || (!isFinite(r))) {
+                if ((d >= minRadius) && (d <= maxRadius)) {
+                    count++;
+                }
+            }
+            console.log(d, minRadius, maxRadius, count, l_ratio);
+            i++;
+        }
+        console.log(count);
+        return count >= 3 && count <= 8;
+    }
+}));

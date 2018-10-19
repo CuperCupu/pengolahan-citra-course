@@ -81,20 +81,8 @@ function categorizeQuadrant(off) {
 function preprocessImage(img) {
     try {
         img = setContrast(img, 255, 1.5);
-        var newimg = ctx.createImageData(img.width, img.height);
-        for (var i = 0; i < img.data.length; i += 4) {
-            let grey = (img.data[i] + img.data[i + 1] + img.data[i + 2]) / 3;
-            if (grey > 127) {
-                grey = 255;
-            } else {
-                grey = 0;
-            }
-            newimg.data[i] = grey;
-            newimg.data[i + 1] = grey;
-            newimg.data[i + 2] = grey;
-            newimg.data[i + 3] = 255;
-        }
-        return newimg;
+        img = setBlackWhite(img);
+        return img;
     } catch(err) {
         alert("preprocess: " + err.message);
     }

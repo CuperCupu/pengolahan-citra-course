@@ -67,19 +67,32 @@ $(document).ready(function() {
     // Red
     $('#button-channel-red').click(function() {
         image = setChannel(image, 1, 0, 0);
+        ctx2.putImageData(image, 0, 0);
+        resetColorChart(countPixels(image));
     });
     // Green
     $('#button-channel-green').click(function() {
         image = setChannel(image, 0, 1, 0);
+        ctx2.putImageData(image, 0, 0);
+        resetColorChart(countPixels(image));
     });
-    // Bleu
+    // Blue
     $('#button-channel-blue').click(function() {
         image = setChannel(image, 0, 0, 1);
+        ctx2.putImageData(image, 0, 0);
+        resetColorChart(countPixels(image));
     });
 
     // Grayscale
     $('#button-channel-grayscale').click(function() {
         image = setGrayscale(image);
+        ctx2.putImageData(image, 0, 0);
+    });
+
+    // Black White
+    $('#button-channel-blackwhite').click(function() {
+        image = setBlackWhite(image);
+        ctx2.putImageData(image, 0, 0);
     });
 
 });

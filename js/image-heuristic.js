@@ -39,7 +39,8 @@ class CharacterHeuristic{
         this.filled = data.filled || [];
     }
 
-    match(ratio, endPoints, turningPoints, dots, code, trace, fills) {
+    match(bound, endPoints, turningPoints, dots, code, trace, fills, pixels) {
+        let ratio = bound.height / bound.width;
         // Test against ratio.
         if ((this.minRatio != null) && (ratio < this.minRatio)) {
             return false;
@@ -186,12 +187,15 @@ class CharacterHeuristic{
 
         if ((match) && (this.custom != null)) {
             match = this.custom({
+                bound: bound,
                 ratio: ratio, 
                 endPoints: endPoints,
                 turningPoints: turningPoints,
                 dots: dots,
                 trace: trace,
-                code: code
+                code: code,
+                fills: fills,
+                pixels: pixels,
             })
         }
 
@@ -295,12 +299,12 @@ CharacterHeuristic.matchDot = function(point, rule) {
 
 var character_heuristics = [];
 
-match_all_heuristics = function(ratio, endPoints, turningPoints, dots, code, trace, fills) {
+match_all_heuristics = function(bound, endPoints, turningPoints, dots, code, trace, fills, pixels) {
     let matched = [];
     for (var i in character_heuristics) {
         let h = character_heuristics[i];
         if (!matched.includes(h.name)) {
-            if (h.match(ratio, endPoints, turningPoints, dots, code, trace, fills)) {
+            if (h.match(bound, endPoints, turningPoints, dots, code, trace, fills, pixels)) {
                 matched.push(h.name);
             }
         }
@@ -419,6 +423,7 @@ findTurningPointsAll = function(b, threshold=0.075) {
 
 findFills = function(image, bound, grid_dimension=4) {
     let fills = new Array(grid_dimension * grid_dimension).fill(0);
+    let pixels = [];
     for (let i = 0; i < image.data.length; i += 4) {
         if (image.data[i] > 0) {
             let x = Math.floor((i % (image.width * 4) / 4));
@@ -428,9 +433,16 @@ findFills = function(image, bound, grid_dimension=4) {
                 y: y
             }, bound);
             fills[idx]++;
+            pixels.push({
+                x: x,
+                y: y,
+            });
         }
     }
-    return fills;
+    return {
+        pixels: pixels,
+        fills: fills,
+    };
 }
 
 match_all_heuristics_from_image = function(image) {
@@ -488,16 +500,16 @@ match_all_heuristics_from_image = function(image) {
         //     let pos = pointGrid(b.trace[i], bound);
         //     fills[pos]++;
         // }
-        let fills = findFills(image, bound, grid_dimension);
-        for (let i = 0; i < fills.length; i++) {
-            fills[i] /= (bound.width / grid_dimension) * (bound.height /grid_dimension);
+        let grid = findFills(image, bound, grid_dimension);
+        for (let i = 0; i < grid.fills.length; i++) {
+            grid.fills[i] /= (bound.width / grid_dimension) * (bound.height /grid_dimension);
         }
-        console.log(fills);
+        console.log(grid.fills);
         console.log(endpoints);
         console.log(turningpoints);
         console.log(dots);
         console.log(ratio);
-        return match_all_heuristics(ratio, endpoints, turningpoints, dots, b.code, b.trace, fills);
+        return match_all_heuristics(bound, endpoints, turningpoints, dots, b.code, b.trace, grid.fills, grid.pixels);
     }
     return [];
 }

@@ -536,6 +536,8 @@ let distBetweenIndex = function(i1, i2, traces) {
     return dist;
 }
 function realDistanceBetween(p1, p2, traces) {
+    let length = traces.length;
+    traces = traces.slice().concat(traces.slice(0, Math.ceil(traces.length/2)))
     let p1s = [];
     let p2s = [];
     for (let i = 0; i < traces.length; i++) {
@@ -546,19 +548,27 @@ function realDistanceBetween(p1, p2, traces) {
             p2s.push(i);
         }
     }
-    let dist = traces.length;
+    let set = false;
+    let dist = length;
     for (let i in p1s) {
         for (let j in p2s) {
             let d = distBetweenIndex(p1s[i], p2s[j], traces);
             if (d < dist) {
                 dist = d;
+                set = true;
             }
         }
     }
-    return dist;
+    if (set) {
+        return dist;
+    } else {
+        return Number.POSITIVE_INFINITY;
+    }
 }
 
 function realPositionBetween(p1, p2, traces) {
+    let length = traces.length;
+    traces = traces.slice().concat(traces.slice(0, Math.ceil(traces.length/2)))
     let p1s = [];
     let p2s = [];
     for (let i = 0; i < traces.length; i++) {
@@ -569,9 +579,10 @@ function realPositionBetween(p1, p2, traces) {
             p2s.push(i);
         }
     }
+    let set = false;
     let r1 = null;
     let r2 = null;
-    let dist = traces.length;
+    let dist = length;
     for (let i in p1s) {
         for (let j in p2s) {
             let d = distBetweenIndex(p1s[i], p2s[j], traces);
@@ -582,9 +593,17 @@ function realPositionBetween(p1, p2, traces) {
             }
         }
     }
-    return {
-        dist: dist,
-        p1: r1,
-        p2: r2
-    };
+    if (set) {
+        return {
+            dist: dist,
+            p1: r1 % length,
+            p2: r2 % length
+        };
+    } else {
+        return {
+            dist: Number.POSITIVE_INFINITY,
+            p1: -1,
+            p2: -1
+        };
+    }
 }
