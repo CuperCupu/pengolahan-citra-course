@@ -337,14 +337,14 @@ character_heuristics.push(new CharacterHeuristic({
     turningPoints: [
         {
             minCount: 0,
-            maxCount: 1,
+            maxCount: 2,
             grids: [
                 4, 8
             ]
         },
         {
             minCount: 0,
-            maxCount: 1,
+            maxCount: 2,
             grids: [
                 9, 13
             ]
@@ -583,3 +583,102 @@ character_heuristics.push(new CharacterHeuristic({
         }
     ]
 }))
+
+character_heuristics.push(new CharacterHeuristic({
+    name: "$",
+    strict: true,
+    filled: [
+        {
+            minCount: 1,
+            grids: [
+                1, 2, 5
+            ]
+        },
+        {
+            minCount: 1,
+            grids: [
+                12, 15, 16
+            ]
+        }
+    ],
+    endPoints: [
+        {
+            minCount: 1,
+            grids: [
+                2, 3, 14, 15
+            ]
+        },
+        {
+            maxCount: 1,
+            grids: [
+                4, 8
+            ]
+        },
+        {
+            maxCount: 1,
+            grids: [
+                9, 13
+            ]
+        }
+    ],
+    turningPoints: [
+        {
+            count: 1,
+            grids: [
+                2, 3,
+            ]
+        },
+        {
+            count: 1,
+            grids: [
+                14, 15
+            ]
+        },
+        {
+            minCount: 1,
+            maxCount: 2,
+            grids:[
+                6, 7,
+                10, 11
+            ]
+        }
+    ]
+}));
+
+character_heuristics.push(new CharacterHeuristic({
+    name: "@",
+    strict: true,
+    filled: [
+        {
+            grids: [
+                1, 2, 3, 4,
+                5, 6, 7, 8,
+                9, 10, 11, 12,
+                13, 14, 15, 16
+            ]
+        }
+    ],
+    endPoints: [
+        {
+            count: 1,
+            grids: [
+                12,
+                15, 16
+            ]
+        },
+        {
+            maxCount: 1,
+            grids: [
+                3, 7
+            ]
+        }
+    ],
+    turningPoints: [
+        {
+            minCount: 1,
+            grids: [
+                3, 7, 8, 11, 12, 15, 16
+            ]
+        }
+    ]
+}));

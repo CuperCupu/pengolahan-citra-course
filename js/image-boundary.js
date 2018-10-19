@@ -453,7 +453,7 @@ function findTurningPointsFromTrace2(boundary, threshold=0.1, sensitivity=1.14, 
     let trace = boundary.trace;
     let code = boundary.code;
     let length = trace.length;
-    threshold = Math.round(boundary.size.height * threshold);
+    threshold = Math.round(Math.max(boundary.size.width, boundary.size.height) * threshold);
     // Find end points and shift the code.
     let i = 0;
     let found = false;

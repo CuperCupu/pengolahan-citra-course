@@ -543,7 +543,7 @@ function removeFakeLinesThreshold(img, endPoints, triplePoints, crucialPoints){
     // heuristicLength = Math.sqrt(Math.pow((findBound(img).max.y - findBound(img).min.y),2) + Math.pow((findBound(img).max.x - findBound(img).min.x),2))
     
     thresholdChoice = rBoundLength * 0.2
-    nPercent = 0.15;//Math.abs(xBoundLength - yBoundLength) / (xBoundLength + yBoundLength) * 1.25
+    nPercent = 0.17;//Math.abs(xBoundLength - yBoundLength) / (xBoundLength + yBoundLength) * 1.25
     var suspectValue = []
     for (var i = 0; i < triplePoints.length; i++){
         let suspectValueN = []

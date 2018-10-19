@@ -631,6 +631,7 @@ character_heuristics.push(new CharacterHeuristic({
 // caret
 character_heuristics.push(new CharacterHeuristic({
     name: "caret",
+    strict: true,
     minRatio: 0.9,
     maxRatio: 1.8,
     endPointCount: 3,
@@ -692,6 +693,7 @@ character_heuristics.push(new CharacterHeuristic({
 // caret
 character_heuristics.push(new CharacterHeuristic({
     name: "caret",
+    strict: true,
     minRatio: 0.4,
     maxRatio: 1.2,
     filled: [

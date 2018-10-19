@@ -1352,6 +1352,15 @@ character_heuristics.push(new CharacterHeuristic({
 character_heuristics.push(new CharacterHeuristic({
     name: "Q",
     strict: true,
+    filled: [
+        {
+            maxCount: 2,
+            grids: [
+                6, 7,
+                10, 11
+            ]
+        }
+    ],
     endPoints: [
         {
             minCount: 1,
@@ -1505,6 +1514,14 @@ character_heuristics.push(new CharacterHeuristic({
     name: "V",
     strict: true,
     minRatio: 0.6,
+    filled: [
+        {
+            maxCount: 0,
+            grids: [
+                2, 3, 13, 16
+            ]
+        }
+    ],
     endPoints: [
         {
             minCount: 2,
@@ -1532,7 +1549,7 @@ character_heuristics.push(new CharacterHeuristic({
             grids: [
                 14, 15
             ]
-        }
+        },
     ],
     turningPoints: [
         {

@@ -135,7 +135,7 @@ character_heuristics.push(new CharacterHeuristic({
 // Number 2
 character_heuristics.push(new CharacterHeuristic({
     name: "2",
-    endPointCount: 2,
+    strict: true,
     endPoints: [
         {
             count: 1,
@@ -154,6 +154,12 @@ character_heuristics.push(new CharacterHeuristic({
             directions: [
                 8, 1, 2, 3, 4
             ]
+        },
+        {
+            maxCount: 1,
+            grids: [
+                13
+            ],
         },
     ],
     turningPoints: [

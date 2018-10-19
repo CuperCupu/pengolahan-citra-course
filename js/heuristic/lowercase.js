@@ -276,6 +276,12 @@ character_heuristics.push(new CharacterHeuristic({
             grids: [
                 13, 14, 15
             ]
+        },
+        {
+            maxCount: 0,
+            grids: [
+                12
+            ]
         }
     ],
     endPoints: [
@@ -1030,7 +1036,8 @@ character_heuristics.push(new CharacterHeuristic({
         {
             maxCount: 0,
             grids: [
-                6, 7
+                6, 7,
+                10, 11
             ]
         }
     ],
@@ -1105,6 +1112,12 @@ character_heuristics.push(new CharacterHeuristic({
             minCount: 1,
             grids: [
                 3, 4, 8
+            ]
+        },
+        {
+            maxCount: 0,
+            grids: [
+                13, 14
             ]
         }
     ],
