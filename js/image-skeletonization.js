@@ -30,7 +30,8 @@ function findBound(img) {
         min: min,
         max: max,
         width: max.x - min.x + 1,
-        height: max.y - min.y + 1
+        height: max.y - min.y + 1,
+        diagonal: Math.sqrt(width * width + height * height)
     }
 }
 
