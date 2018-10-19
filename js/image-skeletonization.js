@@ -26,11 +26,13 @@ function findBound(img) {
             }
         }
     }
+    let width = max.x - min.x + 1;
+    let height = max.y - min.y + 1;
     return {
         min: min,
         max: max,
-        width: max.x - min.x + 1,
-        height: max.y - min.y + 1,
+        width: width,
+        height: height,
         diagonal: Math.sqrt(width * width + height * height)
     }
 }
