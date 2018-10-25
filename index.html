@@ -24,11 +24,13 @@
     <script type="text/javascript" src="js/image-heuristic.js"></script>
     <script type="text/javascript" src="js/image-skeletonization.js"></script>
     <script type="text/javascript" src="js/image-boundary.js"></script>
+    <script type="text/javascript" src="js/canvas-drawer.js"></script>
     <script type="text/javascript" src="js/controls/char-generator.js"></script>
     <script type="text/javascript" src="js/controls/image-loader.js"></script>
     <script type="text/javascript" src="js/controls/processor.js"></script>
     <script type="text/javascript" src="js/controls/skeletonization.js"></script>
     <script type="text/javascript" src="js/controls/chaincode.js"></script>
+    <script type="text/javascript" src="js/controls/drawing.js"></script>
     <script type="text/javascript" src="js/heuristic/number.js"></script>
     <script type="text/javascript" src="js/heuristic/lowercase.js"></script>
     <script type="text/javascript" src="js/heuristic/uppercase.js"></script>
@@ -161,6 +163,14 @@
                                 <button id="button-recognize" class="col-12 btn btn-dark">Recognize</button>
                                 <span class="col">Result:</span>
                                 <span id="recognize-result" class="col">None</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="container-drawing" class="control-container col-12 mt-1">
+                        <button class="col-12 btn btn-dark">Drawing</button>
+                        <div class="control-section collapse">
+                            <div class="container">
+                                <button id="button-drawing-clear" class="col-12 btn btn-dark">Clear</button>
                             </div>
                         </div>
                     </div>

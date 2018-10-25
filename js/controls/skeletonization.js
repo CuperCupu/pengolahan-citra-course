@@ -27,7 +27,7 @@ $(document).ready(function() {
                 var triplePoints = findTriplePoints(image);
                 image = removeFakeLinesThreshold(image, endPoints, triplePoints, crucialPoints);
                 image = removeSuspectOneDot(image, endPoints);
-                var onePoints = getOnePoints(image);
+                // var onePoints = getOnePoints(image);
             } else if (stage == 5) {
                 var b = findBoundary(image);
                 var t = findTurningPointsAll(b);
@@ -46,7 +46,6 @@ $(document).ready(function() {
                     let j = translate_index(t.turningPoints[i], t.sliced, b.code.length);
                     setImgPixelAt(image, b.trace[j].x, b.trace[j].y, new Color(255, 0, 0));
                 }
-                
             }
             currentSkeletonizeStage = stage;
         }
@@ -67,13 +66,18 @@ $(document).ready(function() {
         button.click(function() {
             skeletonizeStaged($(this).attr('stage'));
             ctx2.putImageData(image, 0, 0);
+            setDirty(canvas2);
         });
     }
     let button = $('#button-recognize');
+    canvas2.addEventListener('elementdirty', function(e) {
+        currentSkeletonizeStage = 0;
+    });
     button.attr('stage', buttons.length+1);
     button.click(function(e) {
         skeletonizeStaged($(this).attr('stage'));
         ctx2.putImageData(image, 0, 0);
+        setDirty(canvas2);
         let result = match_all_heuristics_from_image(image);
         if (result.length > 0) {
             $('#recognize-result').text(result);

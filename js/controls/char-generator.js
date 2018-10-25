@@ -29,6 +29,7 @@ $(document).ready(function() {
         image.data.set(image_default.data);
         ctx2.putImageData(image, 0, 0);
         counts = countPixels(image);
+        setDirty(canvas2);
         resetColorChart(counts);
         $("#controls").collapse("show");
         for (var i in onReset) {

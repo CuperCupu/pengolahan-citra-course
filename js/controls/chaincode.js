@@ -4,6 +4,7 @@ $(document).ready(function() {
     $('#button-chaincode-preprocess').click(function() {
         image = preprocessImage(image);
         ctx2.putImageData(image, 0, 0);
+        setDirty(canvas2);
     });
     
     $('#button-chaincode-show').click(function() {
@@ -17,6 +18,7 @@ $(document).ready(function() {
             setImgPixelAt(image, b.trace[i].x, b.trace[i].y, new Color(255, 0, 0, 255));
         }
         ctx2.putImageData(image, 0, 0);
+        setDirty(canvas2);
     });
     
 });

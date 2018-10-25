@@ -21,7 +21,7 @@ character_heuristics.push(new CharacterHeuristic({
             minCount: 1,
             maxCount: 2,
             grids: [
-                16
+                8, 12, 16
             ]
         }
     ]
@@ -130,7 +130,19 @@ character_heuristics.push(new CharacterHeuristic({
             grids: [
                 5, 6, 9,
             ]
-        }
+        },
+        {
+            maxCount: 1,
+            grids: [
+                12
+            ]
+        },
+        {
+            maxCount: 1,
+            grids: [
+                15, 16
+            ]
+        },
     ]
 }));
 
@@ -1161,7 +1173,52 @@ character_heuristics.push(new CharacterHeuristic({
 
 // r
 character_heuristics.push(new CharacterHeuristic({
-    name: 'r',
+    name: "r",
+    strict: true,
+    maxRatio: 3,
+    filled: [
+        {
+            maxCount: 0,
+            grids: [
+                7,
+                11, 12
+            ]
+        }
+    ],
+    endPoints: [
+        {
+            minCount: 1,
+            grids: [
+                4, 8
+            ]
+        },
+        {
+            minCount: 1,
+            maxCount: 2,
+            grids: [
+                13, 14, 15, 16
+            ]
+        },
+    ],
+    turningPoints: [
+        {
+            minCount: 1,
+            maxCount: 2,
+            grids: [
+                1, 2, 5, 6
+            ]
+        },
+        {
+            maxCount: 1,
+            grids: [
+                4
+            ]
+        },
+    ]
+}));
+
+character_heuristics.push(new CharacterHeuristic({
+    name: "r",
     strict: true,
     maxRatio: 3,
     filled: [
@@ -1188,7 +1245,7 @@ character_heuristics.push(new CharacterHeuristic({
             ]
         },
         {
-            maxCount: 1,
+            minCount: 1,
             grids: [
                 1
             ]
@@ -1209,7 +1266,7 @@ character_heuristics.push(new CharacterHeuristic({
             ]
         },
         {
-            maxCount: 1,
+            minCount: 1,
             grids: [
                 13, 14
             ]
