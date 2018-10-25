@@ -216,15 +216,13 @@ character_heuristics.push(new CharacterHeuristic({
     strict: true,
     endPoints: [
         {
-            minCount: 1,
-            maxCount: 2,
+            maxCount: 1,
             grids: [
                 4, 8
             ]
         },
         {
-            minCount: 1,
-            maxCount: 2,
+            maxCount: 1,
             grids: [
                 12, 16
             ]

@@ -402,6 +402,7 @@ character_heuristics.push(new CharacterHeuristic({
 // Number 5
 character_heuristics.push(new CharacterHeuristic({
     name: "5",
+    strict: true,
     minRatio: 0.7,
     filled: [
         {
@@ -459,6 +460,7 @@ character_heuristics.push(new CharacterHeuristic({
 // Number 6
 character_heuristics.push(new CharacterHeuristic({
     name: "6",
+    strict: true,
     filled: [
         {
             minCount: 1,

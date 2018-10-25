@@ -1151,15 +1151,11 @@ character_heuristics.push(new CharacterHeuristic({
     ],
     turningPoints: [
         {
-            count: 1,
-            grids: [
-                8, 12
-            ]
-        },
-        {
-            count: 1,
+            minCount: 1,
+            maxCount: 2,
             grids: [
                 3, 4,
+                8, 12
             ]
         },
         {

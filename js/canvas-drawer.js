@@ -1,6 +1,6 @@
 class CanvasDrawer {
 
-    constructor(brush_size = 10, brush_color = 'white') {
+    constructor(brush_size = 5, brush_color = 'white') {
         this.brush_size = brush_size;
         this.brush_color = brush_color;
         this.drawevent = new Event('canvasdrawn');

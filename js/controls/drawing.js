@@ -5,11 +5,23 @@ var last = {
     y: 0
 }
 
+
+
 $(document).ready(function() {
     drawer.clear(canvas);
     drawer.clear(canvas2);
-    var ctx = canvas.getContext('2d');
     image_default = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    
+    $('#button-drawing-clear').click(function() {
+        drawer.clear(canvas2);
+        image_default = ctx2.getImageData(0, 0, canvas2.width, canvas2.height);
+        ctx.putImageData(image_default, 0, 0);
+    });
+    
+    $('#button-drawing-save').click(function() {
+        image_default = ctx2.getImageData(0, 0, canvas2.width, canvas2.height);
+        ctx.putImageData(image_default, 0, 0);
+    });
 
     // canvas.addEventListener('canvasdrawn', (e) => {
     // });

@@ -85,3 +85,7 @@ body {
 #recognize-result {
     word-wrap: break-word;
 }
+
+#image_canvas_2 {
+    cursor: crosshair;
+}
