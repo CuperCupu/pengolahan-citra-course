@@ -464,6 +464,7 @@ function removeSuspectOneDot(img, endPoints){
             }
         }
     }
+<<<<<<< Updated upstream
     if (!detected) {
         return img;
     }
@@ -496,28 +497,61 @@ function removeSuspectOneDot(img, endPoints){
                     pointer = tempPoint[j];
                     change = true;
                     tempPointer.push(pointer);
+=======
+    if (detected){
+        trace = findBoundary(img).trace;
+        bound = findBound(img);
+        xBoundLength = bound.width;
+        yBoundLength = bound.height;
+        //n = realDistanceBetween(point1, point2, trace);
+        n = diagonalLength(point1, point2, img);
+        console.log(n, (Math.sqrt(Math.pow(xBoundLength, 2) + Math.pow(yBoundLength, 2)) * 0.15));
+        console.log(point1, point2);
+        if (n < (Math.sqrt(Math.pow(xBoundLength, 2) + Math.pow(yBoundLength, 2)) * 0.15)){
+            console.log("Inside n")
+            pointer = point1;
+            while (pointer != point2){
+                tempPoint = []
+                change = false
+                var tempRow = Math.floor(pointer / img.width / 4);
+                var tempCol = Math.floor((pointer % (img.width * 4) / 4));
+                for (let i = 0; i < neighbours.length - 1; i++){
+                    temp = ((tempRow + neighbours[i][1]) * img.width * 4)+ ((tempCol + neighbours[i][0]) * 4);
+                    if (img.data[temp] == 255){
+                        tempPoint.push(temp);
+                    }   
+>>>>>>> Stashed changes
                 }
-            }
-            if (change){
-                // var index = crucialPoints.indexOf(pointer);
-                // if (index > -1) {
-                //     crucialPoints.splice(index, 1);
-                // }
-                // index = endPoints.indexOf(pointer);
-                // if (index > -1) {
-                //     endPoints.splice(index, 1);
-                // }
-                img.data[pointer] = 0;
-                img.data[pointer + 1] = 0;
-                img.data[pointer + 2] = 0;
-            }
-            else{
-                for (var j = 0; j < tempPointer.length; j++){
-                    img.data[tempPointer[j]] = 255;
-                    img.data[tempPointer[j] + 1] = 255;
-                    img.data[tempPointer[j] + 2] = 255;
+                len = diagonalLength(pointer, point2, img);
+                for (let j = 0; j < tempPoint.length; j++){
+                    if (diagonalLength(tempPoint[j], point2, img) < len){// && nNeighbours(img, temp[j+1]) == 2){
+                        len = diagonalLength(tempPoint[j], point2, img);
+                        pointer = tempPoint[j];
+                        change = true;
+                        tempPointer.push(pointer);
+                    }
                 }
-                break;
+                if (change){
+                    // var index = crucialPoints.indexOf(pointer);
+                    // if (index > -1) {
+                    //     crucialPoints.splice(index, 1);
+                    // }
+                    // index = endPoints.indexOf(pointer);
+                    // if (index > -1) {
+                    //     endPoints.splice(index, 1);
+                    // }
+                    img.data[pointer] = 0;
+                    img.data[pointer + 1] = 0;
+                    img.data[pointer + 2] = 0;
+                }
+                else{
+                    for (var j = 0; j < tempPointer.length; j++){
+                        img.data[tempPointer[j]] = 255;
+                        img.data[tempPointer[j] + 1] = 255;
+                        img.data[tempPointer[j] + 2] = 255;
+                    }
+                    break;
+                }
             }
         }
     }
