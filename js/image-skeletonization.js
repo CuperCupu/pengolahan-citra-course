@@ -120,8 +120,8 @@ function skeletonizeImage(img) {
         for (var i = 0; i < toBlack.length; i++){
             if (nNeighbours(img, toBlack[i]) > 0){
                 img.data[toBlack[i]] = 0;
-                img.data[toBlack[i] + 1] = idxG;
-                img.data[toBlack[i] + 2] = idxB;
+                img.data[toBlack[i] + 1] = 0;
+                img.data[toBlack[i] + 2] = 0;
             }
         }
         toBlack = new Array();
