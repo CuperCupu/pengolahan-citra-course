@@ -95,6 +95,8 @@ var neighbours =  [[0, -1], [1, -1], [1, 0], [1, 1], [0, 1], [-1, 1], [-1, 0], [
 var neighboursGroup = [[[0, 2, 4], [2, 4, 6]], [[0, 2, 6], [0, 4, 6]]];
 
 function skeletonizeImage(img) {
+    var idxB = 255;
+    var idxG = 255;
     img = preprocessImage(img);
     var firstStep = 0;
     var toBlack = new Array();
@@ -114,11 +116,13 @@ function skeletonizeImage(img) {
                 continue;
             toBlack.push(i);
             hasChanged = true;
-        }
+        }        
         for (var i = 0; i < toBlack.length; i++){
-            img.data[toBlack[i]] = 0;
-            img.data[toBlack[i] + 1] = 0;
-            img.data[toBlack[i] + 2] = 0;
+            if (nNeighbours(img, toBlack[i]) > 0){
+                img.data[toBlack[i]] = 0;
+                img.data[toBlack[i] + 1] = idxG;
+                img.data[toBlack[i] + 2] = idxB;
+            }
         }
         toBlack = new Array();
         
