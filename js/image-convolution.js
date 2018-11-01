@@ -63,3 +63,45 @@ function medianFilter(img) {
     return newimg;
 }
 
+function pixelMirror(img, x, y) {
+    if (x < 0) {
+        x = -x;
+    }
+    if (x >= img.width) {
+        x = 2 * img.width - x;
+    }
+    if (y < 0) {
+        y = -y;
+    }
+    if (y >= img.height) {
+        y = 2 * img.height - y;
+    }
+    return {
+        x: x,
+        y: y
+    }
+}
+
+function getPixelsSquare(img, x, y) { // Returns a 9 length.
+    var neighbours = [];
+    var off = [];
+    for (var dy = y - 1; dy <= y + 1; dy++) {
+        for (var dx = x - 1; dx <= x + 1; dx++) {
+            off.push(pixelMirror(dx, dy));
+        }
+    }
+    for (var i in off) {
+        neighbours.push(getImgPixelAt(img, off[x].x, off[i].y));
+    }
+    return neighbours;
+}
+
+function multKernel(neighbours, kernel) {
+    var result = new Color(0, 0, 0, 255);
+    for (i = 0; i < kernel.length; i++) {
+        result.r += neighbours[i].r * kernel[kernel.length - 1 - i];
+        result.g += neighbours[i].g * kernel[kernel.length - 1 - i];
+        result.b += neighbours[i].b * kernel[kernel.length - 1 - i];
+    }
+    return result;
+}
