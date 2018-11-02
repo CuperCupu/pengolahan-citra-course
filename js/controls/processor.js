@@ -7,7 +7,7 @@ $(document).ready(function() {
         if (parent.hasClass('accordion')) {
             parent.find(".collapse").collapse('hide');
         }
-        curr.find(".collapse").collapse('toggle');
+        curr.children(".collapse").collapse('toggle');
     });
 
     // Reset
