@@ -63,8 +63,16 @@ $(document).ready(function() {
     // drawing in it
     canvas = document.getElementById("image_canvas");
     ctx = canvas.getContext('2d');
+    ctx.imageSmoothingEnabled = false;
+    ctx.msImageSmoothingEnabled = false;
+    ctx.mozImageSmoothingEnabled = false;
+    ctx.webkitImageSmoothingEnabled = false;
     canvas2 = document.getElementById("image_canvas_2");
     ctx2 = canvas2.getContext('2d');
+    ctx2.imageSmoothingEnabled = false;
+    ctx2.msImageSmoothingEnabled = false;
+    ctx2.mozImageSmoothingEnabled = false;
+    ctx2.webkitImageSmoothingEnabled = false;
     if ((location.protocol !== "https:") && (location.hostname != "localhost")) {
         $("#snapshot").removeClass("d-flex");
         $("#snapshot").addClass("d-none");

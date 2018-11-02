@@ -30,15 +30,13 @@ function getNeighbouringPixelsAt(img, x, y) {
 function sortPixels(pixels) {
     
     pixels.sort((a, b) => {
-        var ga = (a.r + a.g + a.b) / 3;
-        var gb = (b.r + b.g + b.b) / 3;
-        return ga - gb;
+        return a.getBrightness() - b.getBrightness();
     });
     return pixels;
 }
 
 function medianFilter(img) {
-    var newimg = ctx2.getImageData(0, 0, img.width, img.height);
+    var newimg = ctx2.createImageData(img.width, img.height);
     for (var y = 0; y < newimg.height; y++) {
         for (var x = 0; x < newimg.width; x++) {
             var n = getNeighbouringPixelsAt(img, x, y);
@@ -68,13 +66,13 @@ function pixelMirror(img, x, y) {
         x = -x;
     }
     if (x >= img.width) {
-        x = 2 * img.width - x;
+        x = 2 * img.width - x - 1;
     }
     if (y < 0) {
         y = -y;
     }
     if (y >= img.height) {
-        y = 2 * img.height - y;
+        y = 2 * img.height - y - 1;
     }
     return {
         x: x,
@@ -82,16 +80,23 @@ function pixelMirror(img, x, y) {
     }
 }
 
-function getPixelsSquare(img, x, y) { // Returns a 9 length.
+function getPixelsSquare(img, x, y, greyscale=false, size=1, wrapFunc=pixelMirror) { // Returns a 9 length.
     var neighbours = [];
     var off = [];
-    for (var dy = y - 1; dy <= y + 1; dy++) {
-        for (var dx = x - 1; dx <= x + 1; dx++) {
-            off.push(pixelMirror(dx, dy));
+    for (var dy = y - size; dy <= y + size; dy++) {
+        for (var dx = x - size; dx <= x + size; dx++) {
+            off.push(wrapFunc(img, dx, dy));
         }
     }
-    for (var i in off) {
-        neighbours.push(getImgPixelAt(img, off[x].x, off[i].y));
+    if (greyscale) {
+        for (var i in off) {
+            var brightness = getImgPixelAt(img, off[i].x, off[i].y).getBrightness();
+            neighbours.push(new Color(brightness, brightness, brightness, 255));
+        }
+    } else {
+        for (var i in off) {
+            neighbours.push(getImgPixelAt(img, off[i].x, off[i].y));
+        }
     }
     return neighbours;
 }
@@ -104,4 +109,64 @@ function multKernel(neighbours, kernel) {
         result.b += neighbours[i].b * kernel[kernel.length - 1 - i];
     }
     return result;
+}
+
+function operateKernel(img, kernel, size=1, greyscale=false) {
+    var newimg = ctx2.createImageData(img.width, img.height);
+    for (var y = 0; y < newimg.height; y++) {
+        for (var x = 0; x < newimg.width; x++) {
+            var n = getPixelsSquare(img, x, y, greyscale, size);
+            setImgPixelAt(newimg, x, y, multKernel(n, kernel));
+        }
+    }
+    return newimg;
+}
+
+function differenceOperator(img) {
+    var newimg = ctx2.createImageData(img.width, img.height);
+    for (var y = 0; y < newimg.height; y++) {
+        for (var x = 0; x < newimg.width; x++) {
+            var c = getImgPixelAt(img, x, y).getBrightness();
+            var n = getPixelsSquare(img, x, y);
+            var idx = 0;
+            var max = Math.abs(n[idx].getBrightness() - c);
+            for (var i = 1; i < n.length; i++) {
+                var d = Math.abs(n[i].getBrightness() - c);
+                if (d > max) {
+                    idx = i;
+                    max = d;
+                }
+            }
+            // setImgPixelAt(newimg, x, y, n[idx]);
+            setImgPixelAt(newimg, x, y, new Color(max, max, max, 255));
+            // console.log(n.length, idx, n[idx].g, n[idx].g, n[idx].b, n[idx].getBrightness());
+        }
+    }
+    return newimg;
+}
+
+function gradienceOperator(img) {
+    var newimg = ctx2.createImageData(img.width, img.height);
+    for (var y = 0; y < newimg.height; y++) {
+        for (var x = 0; x < newimg.width; x++) {
+            var n = getPixelsSquare(img, x, y);
+            var grad = [];
+            var count = Math.floor(n.length / 2);
+            for (var i = 0; i < count; i++) {
+                grad.push(Math.abs(n[i].getBrightness() - n[i + count + 1].getBrightness()));
+            }
+            var idx = 0;
+            var max = grad[idx];
+            for (var i = 1; i < grad.length; i++) {
+                if (grad[i] > max) {
+                    idx = i;
+                    max = grad[i];
+                }
+            }
+            // setImgPixelAt(newimg, x, y, n[idx]);
+            setImgPixelAt(newimg, x, y, new Color(max, max, max, 255));
+            // console.log(n.length, idx, n[idx].g, n[idx].g, n[idx].b, n[idx].getBrightness());
+        }
+    }
+    return newimg;
 }
