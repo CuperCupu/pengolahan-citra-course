@@ -80,11 +80,11 @@ function pixelMirror(img, x, y) {
     }
 }
 
-function getPixelsSquare(img, x, y, greyscale=false, size=1, wrapFunc=pixelMirror) { // Returns a 9 length.
+function getPixelsSquare(img, x, y, greyscale=false, size=3, offset=-1, wrapFunc=pixelMirror) { // Returns a 9 length.
     var neighbours = [];
     var off = [];
-    for (var dy = y - size; dy <= y + size; dy++) {
-        for (var dx = x - size; dx <= x + size; dx++) {
+    for (var dy = y + offset; dy < y + offset + size; dy++) {
+        for (var dx = x + offset; dx < x + offset + size; dx++) {
             off.push(wrapFunc(img, dx, dy));
         }
     }
@@ -111,12 +111,28 @@ function multKernel(neighbours, kernel) {
     return result;
 }
 
-function operateKernel(img, kernel, size=1, greyscale=false) {
+function operator(img, operator, size=3, offset=-1, greyscale=false) {
+    var t = [];
+    for (var i = 0; i < size; i++) {
+        for (var j = 0; j < size; j++) {
+            t.push(operator[(i + j * size)]);
+        }
+    }
+    return operateKernel(img, [operator, t], size, offset, greyscale);
+}
+
+function operateKernel(img, kernels, size=3, offset=-1, greyscale=false) {
     var newimg = ctx2.createImageData(img.width, img.height);
     for (var y = 0; y < newimg.height; y++) {
         for (var x = 0; x < newimg.width; x++) {
-            var n = getPixelsSquare(img, x, y, greyscale, size);
-            setImgPixelAt(newimg, x, y, multKernel(n, kernel));
+            var n = getPixelsSquare(img, x, y, greyscale, size, offset);
+            var b = 0
+            for (var i in kernels) {
+                var t = multKernel(n, kernels[i]);
+                b += Math.pow(t.getBrightness(), 2);
+            }
+            b = Math.sqrt(b);
+            setImgPixelAt(newimg, x, y, new Color(b, b, b, 255));
         }
     }
     return newimg;
