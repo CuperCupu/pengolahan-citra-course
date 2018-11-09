@@ -114,10 +114,11 @@ function multKernel(neighbours, kernel) {
 function operator(img, operator, size=3, offset=-1, greyscale=false) {
     var t = [];
     for (var i = 0; i < size; i++) {
-        for (var j = 0; j < size; j++) {
+        for (var j = size - 1; j >= 0; j--) {
             t.push(operator[(i + j * size)]);
         }
     }
+    console.log(operator, t);
     return operateKernel(img, [operator, t], size, offset, greyscale);
 }
 

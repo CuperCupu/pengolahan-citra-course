@@ -83,16 +83,10 @@ $(document).ready(function() {
     });
 
     $('#button-kernel-robert').click(function() {
-        image = operateKernel(image,
+        image = operator(image,
             [
-                [
-                    1, 0,
-                    0, -1,
-                ],
-                [
-                    0, 1,
-                    -1, 0
-                ]
+                1, 0,
+                0, -1,
             ],
             2, 0, true
         );
@@ -108,6 +102,31 @@ $(document).ready(function() {
                 1, 0, -1
             ],
             3, -1, true
+        );
+        ctx2.putImageData(image, 0, 0);
+        setDirty(canvas2);
+    });
+
+    $('#button-kernel-custom').click(function() {
+        var val = $("#textarea-kernel-custom").val();
+        var splits = val.split(/\s|,|\n/);
+        var mat = [];
+        for (var i in splits) {
+            var t = splits[i].replace(/^\s+|\s+$/g, '');
+            if (t != "") {
+                mat.push(parseFloat(t));
+            }
+        }
+        var size = Math.sqrt(mat.length);
+        var dimension = parseInt(size);
+        if (size != dimension) {
+            alert("Invalid matrix dimension");
+            return;
+        }
+        var offset = parseInt((1 - dimension) / 2);
+        image = operator(image,
+            mat,
+            dimension, offset, true
         );
         ctx2.putImageData(image, 0, 0);
         setDirty(canvas2);

@@ -100,3 +100,11 @@ canvas {
     -ms-interpolation-mode: nearest-neighbor;   /* IE8+                           */
 
 }
+
+#textarea-kernel-custom {
+    width: 100%;
+    min-height: 8rem;
+    resize: none;
+    margin-bottom: 1rem;
+    white-space: nowrap;
+}
