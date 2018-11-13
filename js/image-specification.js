@@ -1,5 +1,4 @@
 $(document).ready(function() {
-    
     ctx4 = document.getElementById("spec_chart").getContext("2d");
     spec_chart = new Chart(ctx4, {
         type: 'line',

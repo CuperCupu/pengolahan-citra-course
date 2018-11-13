@@ -1,14 +1,4 @@
 $(document).ready(function() {
-    
-    $('.control-container > button').click(function(e) {
-        // $('#controls .collapse').collapse('hide');
-        let curr = $(this).parent();
-        let parent = curr.parent();
-        if (parent.hasClass('accordion')) {
-            parent.find(".collapse").collapse('hide');
-        }
-        curr.children(".collapse").collapse('toggle');
-    });
 
     // Reset
     $('#button-reset').click(function() {
@@ -113,20 +103,3 @@ $(document).ready(function() {
     });
 
 });
-
-dirtyevent = new Event('elementdirty');
-cleanevent = new Event('elementclean');
-
-setDirty = function(element, target = true) {
-    $(element).attr('dirty', target);
-    if (target) {
-        element.dispatchEvent(dirtyevent);
-    } else {
-        element.dispatchEvent(cleanevent);
-    }
-}
-
-isDirty = function(element) {
-    let a = $(element).attr('dirty');
-    return a == null || a;
-}
