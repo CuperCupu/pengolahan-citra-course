@@ -131,6 +131,36 @@ var density = (function() {
             }
             return 0;
         }
+
+        mult(map) {
+            return this.operate(map, (l, r) => {return l * r});
+        }
+
+        add(map) {
+            return this.operate(map, (l, r) => {return l + r});
+        }
+
+        sub(map) {
+            return this.operate(map, (l, r) => {
+                var t = l - r;
+                return t < 0 ? 0 : t;
+            });
+        }
+
+        operate(map, func) {
+            if ((map.width == this.width) && (map.height == this.height)) {
+                for (var i = 0; i < this.data.length; i++) {
+                    this.data[i] = func(this.data[i], map.data[i]);
+                }
+                return this;
+            } else {
+                throw Error("Mismatch dimension.");
+            }
+        }
+
+        inBound(x, y) {
+            return (x >= 0) && (x < this.width) && (y >= 0) && (y < this.height);
+        }
     }
 
     var createDensityMap = function(img, neighbours=util.neighbours.nine) {
@@ -148,9 +178,18 @@ var density = (function() {
         return map;
     }
 
+    var copyMap = function(map) {
+        var copy = new DensityMap(map.width, map.height);
+        for (var i = 0; i < copy.data.length; i++) {
+            copy.data[i] = map.data[i];
+        }
+        return copy;
+    }
+
     return {
         DensityMap: DensityMap,
         createDensityMap: createDensityMap,
+        copy: copyMap
     }
 })();
 
@@ -165,7 +204,7 @@ density.visualizer = (function() {
             var d = (info.val - info.min) / info.delta;
             c = sampler.interpolate(params.low, params.high, d);
         } else {
-            c = params.low;
+            c = params.off;
         }
         return c;
     }
@@ -280,4 +319,230 @@ density.mask = (function() {
     return {
         image: maskImage
     }
+})();
+
+density.blobs = (function() {
+    
+    var labelBlob = function(map) {
+        var blobs = new density.DensityMap(map.width, map.height);
+        var neighbours = [
+            [-1, -1],
+            [0, -1],
+            [1, -1],
+            [-1, 0]
+        ];
+        var l = 1;
+        var labelTable = {};
+        for (var y = 0; y < map.height; y++) {
+            for (var x = 0; x < map.width; x++) {
+                var v = map.getAt(x, y);
+                if (v > 0) {
+                    var sum = 0;
+                    var num = Number.MAX_VALUE;
+                    var fores = [[x, y]];
+                    for (var i = 0; i < neighbours.length; i++) {
+                        var dx = x + neighbours[i][0];
+                        var dy = y + neighbours[i][1];
+                        if (map.inBound(dx, dy)) {
+                            var d = blobs.getAt(dx, dy);
+                            sum += d;
+                            if (d > 0) {
+                                if (d < num) {
+                                    if (num != Number.MAX_VALUE) {
+                                        labelTable[num] = d;
+                                    }
+                                    num = d;
+                                }
+                                fores.push([dx, dy]);
+                            }
+                        }
+                    }
+                    if (sum == 0) {
+                        labelTable[l] = l;
+                        blobs.setAt(x, y, l++);
+                    } else {
+                        for (var i = 0; i < fores.length; i++) {
+                            blobs.setAt(fores[i][0], fores[i][1], num);
+                        }
+                    }
+                } else {
+                    blobs.setAt(x, y, 0);
+                }
+            }
+        }
+        // Reduces the label table.
+        var diff;
+        do {
+            diff = 0;
+            for (var k in labelTable) {
+                var d = labelTable[k];
+                var t = labelTable[d];
+                if (d != t) {
+                    diff++;
+                    labelTable[k] = t;
+                }
+            }
+        } while (diff > 0);
+        // Normalize the label.
+        var normal = [];
+        for (var k in labelTable) {
+            var v = parseInt(labelTable[k]);
+            if (normal.indexOf(v) == -1) {
+                normal.push(v);
+            }
+        }
+        normal.sort((a, b) => { return a - b});
+        var maps = {};
+        for (var i = 0; i < normal.length; i++) {
+            maps[normal[i]] = parseInt(i + 1);
+        }
+        for (var k in labelTable) {
+            var d = labelTable[k];
+            labelTable[k] = maps[d];
+        }
+        console.log(labelTable);
+        blobs.map((e) => {return labelTable[e]});
+        
+        return blobs;
+    }
+
+    var retrieveBlobs = function(blobs) {
+        var objects = {};
+        var avgs = {};
+        for (var y = 0; y < blobs.height; y++) {
+            for (var x = 0; x < blobs.width; x++) {
+                var d = blobs.getAt(x, y);
+                if (d > 0) {
+                    var obj;
+                    if (!(d in objects)) {
+                        obj = objects[d] = {
+                            clusters: [],
+                            boundary: {
+                                min: {
+                                    x: Number.POSITIVE_INFINITY,
+                                    y: Number.POSITIVE_INFINITY,
+                                },
+                                max: {
+                                    x: Number.NEGATIVE_INFINITY,
+                                    y: Number.NEGATIVE_INFINITY,
+                                }
+                            },
+                            center: {
+                                x: 0,
+                                y: 0
+                            },
+                            counts: 0
+                        }
+                    } else {
+                        obj = objects[d];
+                        avg = avgs[d];
+                    }
+                    if (x < obj.boundary.min.x) {
+                        obj.boundary.min.x = x;
+                    }
+                    if (x > obj.boundary.max.x) {
+                        obj.boundary.max.x = x;
+                    }
+                    if (y < obj.boundary.min.y) {
+                        obj.boundary.min.y = y;
+                    }
+                    if (y > obj.boundary.max.y) {
+                        obj.boundary.max.y = y;
+                    }
+                    obj.center.x += x;
+                    obj.center.y += y;
+                    obj.counts++;
+                    obj.clusters.push([x, y]);
+                }
+            }
+        }
+        for (var k in objects) {
+            var obj = objects[k];
+            obj.center.x /= obj.counts;
+            obj.center.y /= obj.counts;
+            obj.size = {
+                width: obj.boundary.max.x - obj.boundary.min.x + 1,
+                height: obj.boundary.max.y - obj.boundary.min.y + 1
+            }
+        }
+        return objects;
+    }
+
+    var selectLargest = function(img, blobs, clearColor = new Color(0, 0, 0, 255)) {
+        var max = 0;
+        var i = null;
+        for (var k in blobs) {
+            if (blobs[k].counts > max) {
+                i = k;
+                max = blobs[k].counts;
+            }
+        }
+        for (var k in blobs) {
+            if (k != i) {
+                var b = blobs[k];
+                for (var j in b.clusters) {
+                    var p = b.clusters[j];
+                    setImgPixelAt(img, p[0], p[1], clearColor);
+                }
+            }
+        }
+        return blobs[i];
+    }
+
+    var toMap = function(blob) {
+        var map = new DensityMap(blob.size.width, blob.size.height);
+        // Fill with 0.
+        map.map((e) => 0);
+        for (var i = 0; i < blob.clusters.length; i++) {
+            var p = blob.clusters[i];
+            p[0] -= map.boundary.min.x;
+            p[1] -= map.boundary.min.y;
+            map.setAt(p[0], p[1], 1);
+        }
+        return map;
+    }
+
+    return {
+        label: labelBlob,
+        retrieve: retrieveBlobs,
+        selectLargest: selectLargest,
+        toMap: toMap
+    }
+})();
+
+density.filler = (function() {
+
+    var n = util.neighbours.four;
+
+    /**
+     * @param {DensityMap} map 
+     * @param {Number} x 
+     * @param {Number} y 
+     * @param {Number} fill 
+     */
+    var floodFill = function(map_original, x, y, fill = 1) {
+        var map = density.copy(map_original);
+        var queue = [[x, y]];
+        while (queue.length > 0) {
+            var curr = queue.pop();
+            if (map.getAt(curr[0], curr[1]) == 0) {
+                map.setAt(curr[0], curr[1], fill);
+                for (var k in n) {
+                    var dx = curr[0] + n[k][0];
+                    var dy = curr[1] + n[k][1];
+                    if (map.inBound(dx, dy)) {
+                        if (map.getAt(dx, dy) == 0) {
+                            queue.unshift([dx, dy]);
+                        }
+                    }
+                }
+            }
+        }
+        return map;
+    }
+
+    return {
+        fill: floodFill
+    }
+
 })();

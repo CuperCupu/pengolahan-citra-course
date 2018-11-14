@@ -3,6 +3,25 @@ var util = (function() {
     var canvas = document.createElement('canvas');
     var ctx = canvas.getContext('2d');
 
+    var identity = [
+        [0, 0]
+    ];
+
+    var neighbours4 = [
+        [0, -1],
+        [-1, 0],
+        [1, 0],
+        [0, 1],
+    ];
+
+    var neighbours5 = [
+        [0, -1],
+        [-1, 0],
+        [0, 0],
+        [1, 0],
+        [0, 1],
+    ];
+
     var neighbours8 = [
         [-1, -1],
         [0, -1],
@@ -31,6 +50,18 @@ var util = (function() {
         for (var y = -size; y <= size; y++) {
             for (var x = -size; x <= size; x++) {
                 neighbours.push([x, y]);
+            }
+        }
+        return neighbours;
+    }
+
+    var createRoundNeighboursMask = function(size) {
+        var neighbours = [];
+        for (var y = -size; y <= size; y++) {
+            for (var x = -size; x <= size; x++) {
+                if (Math.sqrt((x * x) + (y * y)) <= size) {
+                    neighbours.push([x, y]);
+                }
             }
         }
         return neighbours;
@@ -134,9 +165,13 @@ var util = (function() {
         removeDot: removeDot,
         fillDot: fillDot,
         neighbours: {
+            four: neighbours4,
+            five: neighbours5,
             eight: neighbours8,
             nine: neighbours9,
             square: createNeighboursMask,
+            circle: createRoundNeighboursMask,
+            identity: identity,
         },
         countNeighbours: countNeighbours,
         getNeighbours: getNeighbours,

@@ -89,3 +89,28 @@ function detectSkin(img){
     }
     return skin;
 }
+
+var skinmap = (function() {
+    /**
+     * Create a skinmap via YCbCr
+     * @param {ImageData} img 
+     */
+    var YCbCr = function(img) {
+        var map = new density.DensityMap(img.width, img.height);
+        for (var y = 0; y < map.height; y++) {
+            for (var x = 0; x < map.width; x++) {
+                var p = getImgPixelAt(img, x, y).toYCrCb();
+                if ((p.r > 80) && (p.g > 85) && (p.g < 135) && (p.b > 135) && (p.b < 180)) {
+                    map.setAt(x, y, 1);
+                } else {
+                    map.setAt(x, y, 0);
+                }
+            }
+        }
+        return map;
+    }
+
+    return {
+        YCbCr: YCbCr
+    }
+})();
