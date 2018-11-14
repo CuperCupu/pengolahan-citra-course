@@ -79,5 +79,13 @@ $(document).ready(function() {
         setDirty(canvas2);
     });
 
+    $('#button-recog-3').click(function(){
+        resetPixels();
+        image = detectSkin(image);
+        canvas2.width = image.width;
+        canvas2.height = image.height;
+        ctx2.putImageData(image, 0, 0);
+        setDirty(canvas2);
+    });
 
 });
