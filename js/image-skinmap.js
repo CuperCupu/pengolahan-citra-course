@@ -64,25 +64,28 @@ function isBetween(value, lower, upper){
 }
 
 function detectSkin(img){
-    function skinMap(hue, saturation){
+    function skinMap(intensity, hue, saturation){
         return (
-            (isBetween(hue, 120, 160) && isBetween(saturation, 10, 60))
-            || (isBetween(hue, 150, 180) && isBetween(saturation, 20, 80))
+            ((isBetween(hue, 120, 160) && isBetween(saturation, 10, 60))
+            || (isBetween(hue, 150, 180) && isBetween(saturation, 20, 80)))
         );
         // return isBetween(hue, 110, 170) && isBetween(saturation, 0, 130);
     }
+    var skin = [];
+
     irgby = convertToLogOpponent(img);
     hueBuffer = createHue(irgby);
     saturationBuffer = createSaturation(irgby);
 
     for(let i = 0; i < irgby.i.length; i++){
-        if (skinMap(hueBuffer[i], saturationBuffer[i])){
-            img.data[i*4] = img.data[i*4 + 1] = img.data[i*4 + 2] = 255;
+        if (skinMap(irgby.i[i], hueBuffer[i], saturationBuffer[i])){
+            // img.data[i*4] = img.data[i*4 + 1] = img.data[i*4 + 2] = 255;
+            skin.push(1);
         }
         else{
-            img.data[i*4] = img.data[i*4 + 1] = img.data[i*4 + 2] = 0;
+            // img.data[i*4] = img.data[i*4 + 1] = img.data[i*4 + 2] = 0;
+            skin.push(0);
         }
     }
-
-    return img;
+    return skin;
 }
