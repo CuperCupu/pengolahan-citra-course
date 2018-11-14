@@ -58,11 +58,11 @@ $(document).ready(function() {
         map.normalize();
         avg = map.getAverage();
         console.log(avg);
-        image = density.visualizer.visualize(map, density.visualizer.cm.gradient, {
-            low: new Color(0, 0, 0, 255),
-            high: new Color(255, 255, 255, 255),
-            cutoff: 0,
-        });
+        // image = density.visualizer.visualize(map, density.visualizer.cm.gradient, {
+        //     low: new Color(0, 0, 0, 255),
+        //     high: new Color(255, 255, 255, 255),
+        //     cutoff: 0,
+        // });
         var mark = density.visualizer.mark(map, density.visualizer.cm.binary, {
             low: new Color(255, 0, 0, 255),
             high: new Color(255, 0, 0, 255),
@@ -70,7 +70,9 @@ $(document).ready(function() {
             min: 0.7,
             max: 1,
         })
-        image = util.image.blend(mark, image_default);
+        // image = util.image.blend(mark, image_default);
+        map.map((e) => { return (e > 0.125) ? 1 : 0; })
+        image = density.mask.image(map, image_default);
         canvas2.width = image.width;
         canvas2.height = image.height;
         ctx2.putImageData(image, 0, 0);

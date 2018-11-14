@@ -156,6 +156,9 @@ var density = (function() {
 
 density.visualizer = (function() {
 
+    var canvas = document.createElement('canvas');
+    var ctx = canvas.getContext('2d');
+
     var gradient = function(info, params) {
         var c;
         if (info.val >= params.cutoff) {
@@ -241,5 +244,40 @@ density.visualizer = (function() {
             gradient: gradient,
             binary: binary,
         }
+    }
+})();
+
+density.mask = (function() {
+
+    var canvas = document.createElement('canvas');
+    var ctx = canvas.getContext('2d');
+
+    /**
+     * @param {density.DensityMap} map 
+     * @param {ImageData} image 
+     * @returns {ImageData}
+     */
+    var maskImage = function(map, image) {
+        if ((map.width == image.width) && (map.height == image.height)) {
+            var img = ctx.createImageData(map.width, map.height);
+            var i = 0;
+            for (var y = 0; y < map.height; y++) {
+                for (var x = 0; x < map.width; x++) {
+                    var d = map.getAt(x, y);
+                    img.data[i] = d * image.data[i];
+                    img.data[i + 1] = d * image.data[i + 1];
+                    img.data[i + 2] = d * image.data[i + 2];
+                    img.data[i + 3] = image.data[i + 3];
+                    i += 4;
+                }
+            }
+            return img;
+        } else {
+            throw Error("Mismatch between map and image dimension.");
+        }
+    }
+
+    return {
+        image: maskImage
     }
 })();
