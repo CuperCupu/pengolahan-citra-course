@@ -400,7 +400,6 @@ density.blobs = (function() {
             var d = labelTable[k];
             labelTable[k] = maps[d];
         }
-        console.log(labelTable);
         blobs.map((e) => {return labelTable[e]});
         
         return blobs;
@@ -464,6 +463,8 @@ density.blobs = (function() {
                 width: obj.boundary.max.x - obj.boundary.min.x + 1,
                 height: obj.boundary.max.y - obj.boundary.min.y + 1
             }
+            obj.density = obj.counts / (obj.size.width * obj.size.height);
+            obj.ratio = obj.size.height / obj.size.width;
         }
         return objects;
     }
@@ -480,13 +481,34 @@ density.blobs = (function() {
         for (var k in blobs) {
             if (k != i) {
                 var b = blobs[k];
-                for (var j in b.clusters) {
-                    var p = b.clusters[j];
-                    setImgPixelAt(img, p[0], p[1], clearColor);
-                }
+                fillBlob(img, b, clearColor);
             }
         }
         return blobs[i];
+    }
+
+    var removeNoise = function(img, blobs, threshold, clearColor = new Color(0, 0, 0, 255)) {
+        var bArray = [];
+        for (var k in blobs) {
+            bArray.push(blobs[k]);
+        }
+        bArray.sort((a, b) => { return a.counts - b.counts });
+        // var range = bArray[0].counts - bArray[bArray.length - 1].counts;
+        threshold = (1 - threshold) * bArray[bArray.length - 1].counts;
+        var idx = -1;
+        for (var i = 0; i < bArray.length; i++) {
+            if (bArray[i].counts < threshold) {
+                idx = i;
+            }
+        }
+        if (idx > -1) {
+            for (var j = 0; j < idx; j++) {
+                var b = bArray[j];
+                fillBlob(img, b, clearColor);
+            }
+            bArray.splice(0, idx + 1);
+        }
+        return bArray;
     }
 
     var toMap = function(blob) {
@@ -502,11 +524,21 @@ density.blobs = (function() {
         return map;
     }
 
+    var fillBlob = function(img, blob, fill) {
+        for (var k in blob.clusters) {
+            var p = blob.clusters[k];
+            setImgPixelAt(img, p[0], p[1], fill);
+        }
+        return img;
+    }
+
     return {
         label: labelBlob,
         retrieve: retrieveBlobs,
         selectLargest: selectLargest,
-        toMap: toMap
+        toMap: toMap,
+        removeNoise: removeNoise,
+        fill: fillBlob
     }
 })();
 
