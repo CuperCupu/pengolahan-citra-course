@@ -5,8 +5,6 @@ $(document).ready(function() {
         setDirty(canvas2, false);
     });
 
-    var BWthreshold = 50;
-
     var detectFace = function(map_skin) {
         var blob = density.blobs.label(map_skin);
         var blobs = density.blobs.retrieve(blob);
@@ -46,8 +44,10 @@ $(document).ready(function() {
             if (dx < a.size.width / 2 + b.size.width / 2) {
                 return null;
             }
-            var s1 = Math.sqrt((a.size.width * a.size.width) + (a.size.height * a.size.height));
-            var s2 = Math.sqrt((b.size.width * b.size.width) + (b.size.height * b.size.height));
+            // var s1 = Math.sqrt((a.size.width * a.size.width) + (a.size.height * a.size.height));
+            // var s2 = Math.sqrt((b.size.width * b.size.width) + (b.size.height * b.size.height));
+            var s1 = a.counts;
+            var s2 = b.counts;
             return Math.abs(a.center.y - b.center.y) * (s1 + s2);
         }
         var pairs = null;
@@ -97,7 +97,8 @@ $(document).ready(function() {
                 if ((b.center.x <= eyes.left.center.x - eyes.left.size.width / 2) || (b.center.x >= eyes.right.center.x + eyes.right.size.width / 2)) {
                     return null;
                 }
-                return b.counts;
+                var dist = Math.abs((eyes.left.center.y + eyes.right.center.y) / 2 - b.center.y);
+                return b.counts * dist;
             }
             var mouthEval = 0;
             for (var i = 0; i < blobs.length; i++) {
