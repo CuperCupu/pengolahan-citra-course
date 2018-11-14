@@ -42,12 +42,12 @@ function setGrayscale(image) {
     }
 }
 
-function setBlackWhite(img) {
+function setBlackWhite(img, threshold=127) {
     try {
         var newimg = ctx.createImageData(img.width, img.height);
         for (var i = 0; i < img.data.length; i += 4) {
             let grey = (img.data[i] + img.data[i + 1] + img.data[i + 2]) / 3;
-            if (grey > 127) {
+            if (grey > threshold) {
                 grey = 255;
             } else {
                 grey = 0;

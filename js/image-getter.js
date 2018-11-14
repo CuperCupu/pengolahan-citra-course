@@ -98,7 +98,9 @@ function snapshot() {
         image = ctx.getImageData(0, 0, canvas.width, canvas.height);
         ctx2.putImageData(image, 0, 0);
         counts = countPixels(image);
-        resetColorChart(counts);
+        if (typeof resetColorChart != 'undefined') {
+            resetColorChart(counts);
+        }
         $("#controls").collapse("show");
         for (var i in onReset) {
             onReset[i]();

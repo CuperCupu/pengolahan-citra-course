@@ -35,7 +35,6 @@ function contrastStretch(image, min, max, min2, max2, exp=1) {
                 newimg.data[i + 3] = ALU[3][image.data[i + 3]];
             }
             ctx2.putImageData(newimg, 0, 0);
-            resetColorChart(ALU);
             return newimg;
         }
     } catch(err) {

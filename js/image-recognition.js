@@ -1,6 +1,3 @@
-$(document).ready(function() {
-});
-
 function countPixels(img) {
     try {
         var frequency = [new Array(256), new Array(256), new Array(256), new Array(256)];
@@ -72,8 +69,10 @@ function equalizePixels(mult=1, offset=0, exp=1) {
 
 function resetPixels() {
     if (counts) {
+        canvas2.width = image_default.width;
+        canvas2.height = image_default.height;
         ctx2.putImageData(image_default, 0, 0);
-        image.data.set(image_default.data);
+        image = ctx2.getImageData(0, 0, image_default.width, image_default.height);
         for (var i in onReset) {
             onReset[i]();
         }
@@ -81,3 +80,7 @@ function resetPixels() {
         alert("Please upload an image or take a picture with camera.")
     }
 }
+
+var recognition = (function() {
+
+})();

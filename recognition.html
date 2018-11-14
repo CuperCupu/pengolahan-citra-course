@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <head>
     <meta charset="UTF-8">
-    <meta name="description" content="Image processing">
-    <meta name="keywords" content="Image Processing, Equalization, Contrast Stretching, Histogram Specification, Image Recognition, Zhang Suen">
+    <meta name="description" content="Face recognition">
+    <meta name="keywords" content="Face Recognition, Face Detection, Equalization, Contrast Stretching, Histogram Specification">
     <meta name="author" content="Suhendi">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Image Processor</title>
@@ -18,10 +18,14 @@
 
     <script type="text/javascript" src="js/classes.js"></script>
     <script type="text/javascript" src="js/image-getter.js"></script>
+    <script type="text/javascript" src="js/utils/util.js"></script>
+    <script type="text/javascript" src="js/utils/density.js"></script>
+    <script type="text/javascript" src="js/utils/sampler.js"></script>
     <script type="text/javascript" src="js/image-recognition.js"></script>
     <script type="text/javascript" src="js/image-channel.js"></script>
     <script type="text/javascript" src="js/image-contrast-stretch.js"></script>
     <script type="text/javascript" src="js/image-convolution.js"></script>
+    <script type="text/javascript" src="js/image-skeletonization.js"></script>
     <script type="text/javascript" src="js/canvas-drawer.js"></script>
     <script type="text/javascript" src="js/controls/dirtify.js"></script>
     <script type="text/javascript" src="js/controls/accordion.js"></script>
@@ -33,7 +37,7 @@
     <video width=640 height=480 id="video" style="display: none;" controls autoplay></video>
     <div class="container">
         <h1 class="row d-flex justify-content-center mb-2 mt-2 title">
-            Image Processing and Recognition
+            Face Recognition
         </h1>
         <div class="row d-flex ml-1 mr-1">
             <div class="col-4 mr-1">
@@ -77,6 +81,15 @@
                                         </div>
                                     </div>
                                 </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="control-container col-12 mt-1">
+                        <button class="col-12 btn btn-dark">Recognition</button>
+                        <div class="control-section collapse">
+                            <div class="container accordion">
+                                <button id="button-recog-1" class="col-12 btn btn-dark">1</button>
+                                <button id="button-recog-2" class="col-12 btn btn-dark">2</button>
                             </div>
                         </div>
                     </div>
