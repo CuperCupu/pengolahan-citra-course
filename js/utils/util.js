@@ -215,3 +215,20 @@ util.image = (function() {
         }
     }
 })();
+
+util.misc = (function() {
+    var reduce = function(list, func) {
+        if ((Array.isArray(list)) && (list.length > 0)) {
+            var curr = list[0];
+            for (var i = 1; i < list.length; i++) {
+                curr = func(curr, list[i]);
+            }
+            return curr;
+        }
+        return null;
+    }
+
+    return {
+        reduce: reduce
+    }
+})();

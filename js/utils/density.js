@@ -532,13 +532,48 @@ density.blobs = (function() {
         return img;
     }
 
+    var mergeBlob = function(b1, b2) {
+        var b = {
+            clusters: [],
+            boundary: {
+                min: {
+                    x: Math.min(b1.boundary.min.x, b2.boundary.min.x),
+                    y: Math.min(b1.boundary.min.y, b2.boundary.min.y),
+                },
+                max: {
+                    x: Math.max(b1.boundary.max.x, b2.boundary.max.x),
+                    y: Math.max(b1.boundary.max.y, b2.boundary.max.y),
+                }
+            },
+            center: {
+                x: (b1.center.x + b2.center.x) / 2,
+                y: (b1.center.y + b2.center.y) / 2
+            },
+            counts: b1.counts + b2.counts,
+        }
+        for (var i = 0; i < b1.clusters.length; i++) {
+            b.clusters.push(b1.clusters[i]);
+        }
+        for (var i = 0; i < b2.clusters.length; i++) {
+            b.clusters.push(b2.clusters[i]);
+        }
+        b.size = {
+            width: b.boundary.max.x - b.boundary.min.x + 1,
+            height: b.boundary.max.y - b.boundary.min.y + 1
+        }
+        b.density = b.counts / (b.size.width * b.size.height);
+        b.ratio = b.size.height / b.size.width;
+        return b;
+    }
+
     return {
         label: labelBlob,
         retrieve: retrieveBlobs,
         selectLargest: selectLargest,
         toMap: toMap,
         removeNoise: removeNoise,
-        fill: fillBlob
+        fill: fillBlob,
+        merge: mergeBlob
     }
 })();
 

@@ -34,21 +34,26 @@ $(document).ready(function() {
         })
         var blob = density.blobs.label(hole);
         var blobs = density.blobs.retrieve(blob);
-        return density.blobs.removeNoise(image, blobs, 0.9);
+        if (blobs != null) {
+            return density.blobs.removeNoise(image, blobs, 0.9);
+        }
     }
 
     var detectFaceFeatures = function(img, blobs) {
         // Find 2 blobs most likely to be a pair of eyes.
         var evaluateEyesPair = (a, b) => {
             var dx = Math.abs(a.center.x - b.center.x);
-            if (dx < a.size.width / 2 + b.size.width / 2) {
+            if (dx <= a.size.width / 3 + b.size.width / 3) {
+                return null;
+            }
+            if ((a.ratio > 1) || (b.ratio > 1)) {
                 return null;
             }
             // var s1 = Math.sqrt((a.size.width * a.size.width) + (a.size.height * a.size.height));
             // var s2 = Math.sqrt((b.size.width * b.size.width) + (b.size.height * b.size.height));
             var s1 = a.counts;
             var s2 = b.counts;
-            return Math.abs(a.center.y - b.center.y) * (s1 + s2);
+            return Math.abs(a.center.y - b.center.y) / (s1 + s2);
         }
         var pairs = null;
         var min_dist = Number.POSITIVE_INFINITY;
@@ -77,13 +82,17 @@ $(document).ready(function() {
                 eyes.right = t;
             }
             blobs.splice(pairs[0], 1);
-            blobs.splice(pairs[1], 1);
+            if (pairs[1] > pairs[0]) {
+                blobs.splice(pairs[1] - 1, 1);
+            } else {
+                blobs.splice(pairs[1], 1);
+            }
         }
         var mouth = null;
         if (eyes != null) {
             // Find mouth.
             var evaluateMouth = function(b) {
-                if (b.ratio > 1.2) {
+                if (b.ratio > 1) {
                     return null;
                 }
                 if (b.density < 0.3) {
@@ -98,7 +107,8 @@ $(document).ready(function() {
                     return null;
                 }
                 var dist = Math.abs((eyes.left.center.y + eyes.right.center.y) / 2 - b.center.y);
-                return b.counts * dist;
+                var center_dist = Math.abs((eyes.left.center.x + eyes.right.center.x) / 2 - b.center.x);
+                return b.counts * (dist - 5 * center_dist);
             }
             var mouthEval = 0;
             for (var i = 0; i < blobs.length; i++) {
@@ -110,15 +120,52 @@ $(document).ready(function() {
                     }
                 }
             }
+            var i = mouth;
             mouth = blobs[mouth];
+            blobs.splice(i, 1);
+        }
+        var nose = null;
+        if ((eyes != null) && (mouth != null)) {
+            var boundary = {
+                min: {
+                    x: mouth.boundary.min.x,
+                    // x: Math.min(eyes.left.boundary.min.x, eyes.right.boundary.min.x, mouth.boundary.min.x),
+                    y: Math.min(eyes.left.boundary.min.y, eyes.right.boundary.min.y, mouth.boundary.min.y)
+                },
+                max: {
+                    x: mouth.boundary.max.x,
+                    // x: Math.max(eyes.left.boundary.max.x, eyes.right.boundary.max.x, mouth.boundary.max.x),
+                    y: Math.max(eyes.left.boundary.max.y, eyes.right.boundary.max.y, mouth.boundary.max.y)
+                }
+            }
+            var evaluateNose = function(b) {
+                if (
+                    (b.boundary.min.x >= boundary.min.x)  && 
+                    (b.boundary.max.x <= boundary.max.x) && 
+                    (b.boundary.min.y >= boundary.min.y) && 
+                    (b.boundary.max.y <= boundary.max.y)
+                ) {
+                    return true;
+                }
+                return null;
+            }
+            var candidates = [];
+            for (var k in blobs) {
+                if (evaluateNose(blobs[k])) {
+                    candidates.push(blobs[k]);
+                }
+            }
+            nose = util.misc.reduce(candidates, density.blobs.merge);
         }
         return {
             eyes: eyes,
-            mouth: mouth
+            mouth: mouth,
+            nose: nose
         }
     }
 
     var drawFeaturesRect = function(ctx, features) {
+        console.log(features);
         ctx.putImageData(image_default, 0, 0);
         if (features.eyes != null) {
             var b;
@@ -138,6 +185,14 @@ $(document).ready(function() {
             ctx.rect(b.boundary.min.x, b.boundary.min.y, b.size.width, b.size.height);
             ctx.stroke();
         }
+        if (features.nose != null) {
+            var b;
+            ctx.fillStyle = "";
+            ctx.strokeStyle = "green";
+            b = features.nose;
+            ctx.rect(b.boundary.min.x, b.boundary.min.y, b.size.width, b.size.height);
+            ctx.stroke();
+        }
         setDirty(ctx.canvas);
     }
 
@@ -153,6 +208,11 @@ $(document).ready(function() {
             var b;
             b = features.mouth;
             density.blobs.fill(img, b, new Color(0, 255, 0, 255));
+        }
+        if (features.nose != null) {
+            var b;
+            b = features.nose;
+            density.blobs.fill(img, b, new Color(0, 0, 255, 255));
         }
     }
 
