@@ -5,6 +5,18 @@ $(document).ready(function() {
         setDirty(canvas2, false);
     });
 
+    var detectMataSipit = function(features) {
+        if (features.eyes != null) {
+            var w = Math.min(features.eyes.left.ratio, features.eyes.right.ratio);
+            if (w < 0.4) {
+                return "matanya sipit";
+            } else {
+                return "matanya gede";
+            }
+        }
+        return null;
+    }
+
     var detectFace = function(map_skin) {
         var blob = density.blobs.label(map_skin);
         var blobs = density.blobs.retrieve(blob);
@@ -34,7 +46,7 @@ $(document).ready(function() {
         })
         var blob = density.blobs.label(hole);
         var blobs = density.blobs.retrieve(blob);
-        if (blobs != null) {
+        if (blobs) {
             return density.blobs.removeNoise(image, blobs, 0.9);
         }
     }
@@ -95,7 +107,7 @@ $(document).ready(function() {
                 if (b.ratio > 1) {
                     return null;
                 }
-                if (b.density < 0.3) {
+                if (b.density < 0.2) {
                     return null;
                 }
                 // Mouth must be below of eyes.
@@ -108,7 +120,7 @@ $(document).ready(function() {
                 }
                 var dist = Math.abs((eyes.left.center.y + eyes.right.center.y) / 2 - b.center.y);
                 var center_dist = Math.abs((eyes.left.center.x + eyes.right.center.x) / 2 - b.center.x);
-                return b.counts * (dist - 5 * center_dist);
+                return b.counts * (dist - 2 * center_dist);
             }
             var mouthEval = 0;
             for (var i = 0; i < blobs.length; i++) {
@@ -130,20 +142,22 @@ $(document).ready(function() {
                 min: {
                     x: mouth.boundary.min.x,
                     // x: Math.min(eyes.left.boundary.min.x, eyes.right.boundary.min.x, mouth.boundary.min.x),
-                    y: Math.min(eyes.left.boundary.min.y, eyes.right.boundary.min.y, mouth.boundary.min.y)
+                    // y: Math.min(eyes.left.boundary.min.y, eyes.right.boundary.min.y, mouth.boundary.min.y)
+                    y: Math.min(eyes.left.boundary.min.y, eyes.right.boundary.min.y)
                 },
                 max: {
                     x: mouth.boundary.max.x,
                     // x: Math.max(eyes.left.boundary.max.x, eyes.right.boundary.max.x, mouth.boundary.max.x),
-                    y: Math.max(eyes.left.boundary.max.y, eyes.right.boundary.max.y, mouth.boundary.max.y)
+                    // y: Math.max(eyes.left.boundary.max.y, eyes.right.boundary.max.y, mouth.boundary.max.y)
+                    y: Math.max(eyes.left.boundary.max.y, eyes.right.boundary.max.y, mouth.boundary.min.y)
                 }
             }
             var evaluateNose = function(b) {
                 if (
-                    (b.boundary.min.x >= boundary.min.x)  && 
-                    (b.boundary.max.x <= boundary.max.x) && 
-                    (b.boundary.min.y >= boundary.min.y) && 
-                    (b.boundary.max.y <= boundary.max.y)
+                    (b.boundary.min.x > boundary.min.x)  && 
+                    (b.boundary.max.x < boundary.max.x) && 
+                    (b.boundary.min.y > boundary.min.y) && 
+                    (b.boundary.max.y < boundary.max.y)
                 ) {
                     return true;
                 }
@@ -165,7 +179,6 @@ $(document).ready(function() {
     }
 
     var drawFeaturesRect = function(ctx, features) {
-        console.log(features);
         ctx.putImageData(image_default, 0, 0);
         if (features.eyes != null) {
             var b;
@@ -218,7 +231,9 @@ $(document).ready(function() {
 
     var edgeFeaturesDetection = function() {
         resetPixels();
+        // equalizePixels();
         var face = medianFilter(image);
+        // image = contrastStretch(face, -50, 200, 0, 255);
         var map_skin = skinmap.YCbCr(face);
         var blob = density.blobs.label(map_skin);
         var blobs = density.blobs.retrieve(blob);
@@ -266,6 +281,7 @@ $(document).ready(function() {
     $('#button-recog-1').click(function() {
         var features = edgeFeaturesDetection();
         fillFeatures(image, features);
+        console.log(detectMataSipit(features));
         canvas2.width = image.width;
         canvas2.height = image.height;
         ctx2.putImageData(image, 0, 0);
@@ -275,11 +291,13 @@ $(document).ready(function() {
     $('#button-recog-2').click(function() {
         var features = edgeFeaturesDetection();
         drawFeaturesRect(ctx2, features);
+        console.log(detectMataSipit(features));
     });
 
     $('#button-recog-3').click(function(){
         var features = ffAlgorithm();
         fillFeatures(image, features);
+        console.log(detectMataSipit(features));
         canvas2.width = image.width;
         canvas2.height = image.height;
         ctx2.putImageData(image, 0, 0);
@@ -289,6 +307,7 @@ $(document).ready(function() {
     $('#button-recog-4').click(function(){
         var features = ffAlgorithm();
         drawFeaturesRect(ctx2, features);
+        console.log(detectMataSipit(features));
     });
 
 
