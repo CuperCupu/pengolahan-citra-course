@@ -118,7 +118,6 @@ function operator(img, operator, size=3, offset=-1, greyscale=false) {
             t.push(operator[(i + j * size)]);
         }
     }
-    console.log(operator, t);
     return operateKernel(img, [operator, t], size, offset, greyscale);
 }
 

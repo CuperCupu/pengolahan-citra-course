@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="description" content="Image processing">
+    <meta name="keywords" content="Image Processing, Equalization, Contrast Stretching, Histogram Specification, Image Recognition, Zhang Suen">
+    <meta name="author" content="Suhendi">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Processing</title>
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="icon" href="../icon.png" type="image/png"/>
+    <link rel="shortcut icon" href="../icon.png" type="image/png"/>
+    <script src="jslib/jquery-3.3.1.min.js"></script>
+    <script src="jslib/popper.min.js"></script>
+    <script src="jslib/bootstrap.min.js"></script>
+    <script src="jslib/Chart.bundle.min.js"></script>
+    <script src="jslib/exif.js"></script>
+
+    <script type="text/javascript" src="js/classes.js"></script>
+    <script type="text/javascript" src="js/image-getter.js"></script>
+    <script type="text/javascript" src="js/image-processor.js"></script>
+    <script type="text/javascript" src="js/image-specification.js"></script>
+    <script type="text/javascript" src="js/image-channel.js"></script>
+    <script type="text/javascript" src="js/image-contrast-stretch.js"></script>
+    <script type="text/javascript" src="js/image-heuristic.js"></script>
+    <script type="text/javascript" src="js/image-skeletonization.js"></script>
+    <script type="text/javascript" src="js/image-boundary.js"></script>
+    <script type="text/javascript" src="js/image-convolution.js"></script>
+    <script type="text/javascript" src="js/canvas-drawer.js"></script>
+    <script type="text/javascript" src="js/controls/dirtify.js"></script>
+    <script type="text/javascript" src="js/controls/accordion.js"></script>
+    <script type="text/javascript" src="js/controls/char-generator.js"></script>
+    <script type="text/javascript" src="js/controls/image-loader.js"></script>
+    <script type="text/javascript" src="js/controls/processor.js"></script>
+    <script type="text/javascript" src="js/controls/skeletonization.js"></script>
+    <script type="text/javascript" src="js/controls/chaincode.js"></script>
+    <script type="text/javascript" src="js/controls/drawing.js"></script>
+    <script type="text/javascript" src="js/controls/convolution.js"></script>
+    <script type="text/javascript" src="js/heuristic/number.js"></script>
+    <script type="text/javascript" src="js/heuristic/lowercase.js"></script>
+    <script type="text/javascript" src="js/heuristic/uppercase.js"></script>
+    <script type="text/javascript" src="js/heuristic/symbol.js"></script>
+    <script type="text/javascript" src="js/heuristic/brackets.js"></script>
+    <script type="text/javascript" src="js/heuristic/operator.js"></script>
+</head>
+<body>
+    <video width=640 height=480 id="video" style="display: none;" controls autoplay></video>
+    <div class="container">
+        <button class="title btn btn-dark col-12 d-flex justify-content-center mb-2 mt-2" onclick="window.location.href='index.html'">
+            <h1>
+                Image Processing
+            </h1>
+        </button>
+        <div class="row d-flex ml-1 mr-1">
+            <div class="col-4 mr-1">
+                <div id="snapshot" class="row d-flex mt-1">
+                    <button id="button-webcam-start" class="col btn btn-dark">Start Webcam</button> 
+                    <div id="webcam-control" class="col d-none" style="padding: 0;">
+                        <button class="col btn btn-dark mr-1 mt-1" id="button-webcam-snapshot">Take Snapshot</button> 
+                        <button class="col btn btn-dark mr-1 mt-1" id="button-webcam-stop">Stop Webcam</button> 
+                    </div>
+                </div>
+                <div class="row d-flex mt-1">
+                    <input id="image-file-input" oninput="" type="file" accept="image/*" capture="camera" style="display: none;"/>
+                    <input id="button-file-input" class="col btn btn-dark" type="button" value="Take Picture"/>
+                </div>
+                <div id="char-control" class="control-container row mt-1" style="padding: 0;">
+                    <button class="col-12 btn btn-dark">Character Generator</button>
+                    <div class="col-12 control-section collapse">
+                        <div class="container">
+                            <select class="generator-font col-12">
+                                <option value="Arial">Arial</option>
+                                <option value="Helvetica">Helvetica</option>
+                                <option value="Times">Times</option>
+                                <option value="Courier">Courier</option>
+                                <option value="Courier New">Courier New</option>
+                                <option value="Verdana">Verdana</option>
+                                <option value="Georgia">Georgia</option>
+                                <option value="Palatino">Palatino</option>
+                                <option value="Garamond">Garamond</option>
+                                <option value="Bookman">Bookman</option>
+                                <option value="Comic Sans MS">Comic Sans MS</option>
+                                <option value="Trebuchet MS">Trebuchet MS</option>
+                            </select>
+                            <select class="generator-char col-12">
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div id="controls" class="row collapse accordion">
+                    <button id="button-reset" class="col btn btn-dark mt-1">Reset</button>
+                    <div class="control-container col-12 mt-1">
+                        <button class="col-12 btn btn-dark">Image Filter</button>
+                        <div class="control-section collapse">
+                            <div class="container accordion">
+                                <div class="control-container col-12 mt-1">
+                                        <button class="col-12 btn btn-dark">Miscellaneous</button>
+                                        <div class="control-section collapse">
+                                            <div class="container">
+                                                <button id="button-misc-invert" class="col btn btn-dark">Invert</button>
+                                                <button id="button-misc-vivid" class="col btn btn-dark">Vivid</button>
+                                                <button id="button-misc-contrast" class="col btn btn-dark">High Contrast</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="control-container col-12 mt-1">
+                                        <button class="col-12 btn btn-dark">Channel</button>
+                                        <div class="control-section collapse">
+                                            <div class="container">
+                                                <button id="button-channel-red" class="col btn btn-dark">Red</button> 
+                                                <button id="button-channel-green" class="col btn btn-dark ml-1 mr-1 mt-1">Green</button> 
+                                                <button id="button-channel-blue" class="col btn btn-dark ml-1 mr-1 mt-1">Blue</button> 
+                                                <button id="button-channel-grayscale" class="col btn btn-dark ml-1 mr-1 mt-1">Grayscale</button> 
+                                                <button id="button-channel-blackwhite" class="col btn btn-dark ml-1 mr-1 mt-1">Black and White</button> 
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="control-container col-12 mt-1">
+                                        <button class="col-12 btn btn-dark">Equalization</button>
+                                        <div class="control-section collapse">
+                                            <div class="container">
+                                                <button id="button-equalize" class="col btn btn-dark">Equalize</button> 
+                                                <button id="button-equalize-bright" class="col btn btn-dark ml-1 mr-1 mt-1">Brighter</button> 
+                                                <button id="button-equalize-dark" class="col btn btn-dark ml-1 mr-1 mt-1">Darken</button> 
+                                                <button id="button-equalize-reduce-contrast" class="col btn btn-dark ml-1 mr-1 mt-1">Reduce Contrast</button> 
+                                                <button id="button-equalize-increase-contrast" class="col btn btn-dark ml-1 mr-1 mt-1">Higher Contrast</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="control-container col-12 mt-1">
+                                        <button class="col-12 btn btn-dark">Specification</button>
+                                        <div class="control-section collapse">
+                                            <div class="container">
+                                                <button id="button-spec" class="col btn btn-dark">Specify</button>
+                                                <button id="button-spec-image" class="col btn btn-dark">Use Image Specification</button>
+                                                <button id="button-spec-custom" class="col btn btn-dark d-none">Use Custom Specification</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="control-container col-12 mt-1">
+                        <button class="col-12 btn btn-dark">Text</button>
+                        <div class="control-section collapse">
+                            <div class="container accordion">
+                                <div class="control-container col-12 mt-1">
+                                    <button class="col-12 btn btn-dark">Chain Code</button>
+                                    <div class="control-section collapse">
+                                        <div class="container">
+                                            <button id="button-chaincode-preprocess" class="col btn btn-dark">Pre Process</button>
+                                            <button id="button-chaincode-show" class="col-12 btn btn-dark">Show Chaincode</button>
+                                            <button id="button-chaincode-display" class="col-12 btn btn-dark">Display Boundary</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="control-container col-12 mt-1">
+                                    <button class="col-12 btn btn-dark">Skeletonization</button>
+                                    <div class="control-section collapse">
+                                        <div class="container">
+                                            <button id="button-skeleton-preprocess" class="col btn btn-dark">Pre Process</button>
+                                            <button id="button-skeleton-zhangsuen" class="col btn btn-dark">Zhang Suen</button>
+                                            <button id="button-skeleton-postprocess" class="col btn btn-dark">Post Process</button>
+                                            <button id="button-skeleton-removefakelines" class="col btn btn-dark">Remove Fake Lines</button>
+                                            <button id="button-skeleton-turningpoints" class="col btn btn-dark">Find Turning Points</button>
+                                            <button id="button-skeleton-all" class="col btn btn-dark">Complete</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div id="container-recognition" class="control-container col-12 mt-1">
+                                    <button class="col-12 btn btn-dark">Recognition</button>
+                                    <div class="control-section collapse">
+                                        <div class="container">
+                                            <button id="button-recognize" class="col-12 btn btn-dark">Recognize</button>
+                                            <span class="col">Result:</span>
+                                            <span id="recognize-result" class="col">None</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div id="container-drawing" class="control-container col-12 mt-1">
+                                    <button class="col-12 btn btn-dark">Drawing</button>
+                                    <div class="control-section collapse">
+                                        <div class="container">
+                                            <button id="button-drawing-save" class="col-12 btn btn-dark">Save</button>
+                                            <button id="button-drawing-clear" class="col-12 btn btn-dark">Clear</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="control-container col-12 mt-1">
+                        <button class="col-12 btn btn-dark">Convolution</button>
+                        <div class="control-section collapse">
+                            <div class="container accordion">
+                                <button id="button-median-filter" class="col-12 btn btn-dark">Median Filter</button>
+                                <button id="button-diff" class="col-12 btn btn-dark">Difference Operator</button>
+                                <button id="button-grad" class="col-12 btn btn-dark">Gradient Operator</button>
+                                <div class="control-container col-12 mt-1">
+                                    <button class="col-12 btn btn-dark">Operator</button>
+                                    <div class="control-section collapse">
+                                        <div class="container accordion">
+                                            <button id="button-kernel-sobel" class="col-12 btn btn-dark">Sobel Operator</button>
+                                            <button id="button-kernel-freichen" class="col-12 btn btn-dark">Frei Chen Operator</button>
+                                            <button id="button-kernel-robert" class="col-12 btn btn-dark">Robert Operator</button>
+                                            <button id="button-kernel-prewitt" class="col-12 btn btn-dark">Prewitt Operator</button>
+                                            <div class="control-container col-12 mt-1">
+                                                <button class="col-12 btn btn-dark">Custom Operator</button>
+                                                <div class="control-section collapse">
+                                                    <div class="container accordion">
+                                                        <textarea id="textarea-kernel-custom" class="form-control"></textarea>
+                                                        <button id="button-kernel-custom" class="col-12 btn btn-dark">Apply</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="row d-flex justify-content-center align-items-center">
+                    <canvas class="image-box col-lg-5 col-md-8 col-12" id="image_canvas" width="400" height="400"></canvas>
+                    <canvas class="image-box col-lg-5 col-md-8 col-12" id="image_canvas_2" width="400" height="400"></canvas>
+                    <canvas class="col-lg-5 col-md-8 col-12 image-box" id="main_chart" width="400" height="400"></canvas>
+                    <canvas class="col-lg-5 col-md-8 col-12 image-box" id="spec_chart" width="400" height="400"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>

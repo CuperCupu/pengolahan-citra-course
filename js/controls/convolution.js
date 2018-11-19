@@ -1,3 +1,25 @@
+var operators = {
+    sobel: [
+        -1, 0, 1,
+        -2, 0, 2,
+        -1, 0, 1
+    ],
+    freichen: [
+        -1, -2, -1,
+        0, 0, 0,
+        1, 2, 1
+    ],
+    robert: [
+        1, 0,
+        0, -1,
+    ],
+    prewitt: [
+        1, 0, -1,
+        1, 0, -1,
+        1, 0, -1
+    ]
+}
+
 $(document).ready(function() {
 
     $('#button-median-filter').click(function() {
@@ -45,11 +67,11 @@ $(document).ready(function() {
     
     $('#button-kernel-edge2').click(function() {
         image = operateKernel(image,
-            [
+            [[
                 0, -1, 0,
                 -1, 4, -1,
                 0, -1, 0
-            ],
+            ]],
             3, -1, true
         );
         ctx2.putImageData(image, 0, 0);
@@ -58,11 +80,7 @@ $(document).ready(function() {
 
     $('#button-kernel-sobel').click(function() {
         image = operator(image,
-            [
-                -1, 0, 1,
-                -2, 0, 2,
-                -1, 0, 1
-            ],
+            operators.sobel,
             3, -1, true
         );
         ctx2.putImageData(image, 0, 0);
@@ -71,11 +89,7 @@ $(document).ready(function() {
 
     $('#button-kernel-freichen').click(function() {
         image = operator(image,
-            [
-                -1, -2, -1,
-                0, 0, 0,
-                1, 2, 1
-            ],
+            operators.freichen,
             3, -1, true
         );
         ctx2.putImageData(image, 0, 0);
@@ -84,10 +98,7 @@ $(document).ready(function() {
 
     $('#button-kernel-robert').click(function() {
         image = operator(image,
-            [
-                1, 0,
-                0, -1,
-            ],
+            operators.robert,
             2, 0, true
         );
         ctx2.putImageData(image, 0, 0);
@@ -96,11 +107,7 @@ $(document).ready(function() {
 
     $('#button-kernel-prewitt').click(function() {
         image = operator(image,
-            [
-                1, 0, -1,
-                1, 0, -1,
-                1, 0, -1
-            ],
+            operators.prewitt,
             3, -1, true
         );
         ctx2.putImageData(image, 0, 0);

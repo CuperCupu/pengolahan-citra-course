@@ -1,12 +1,13 @@
 <!DOCTYPE html>
 <head>
     <meta charset="UTF-8">
-    <meta name="description" content="Image processing">
-    <meta name="keywords" content="Image Processing, Equalization, Contrast Stretching, Histogram Specification, Image Recognition, Zhang Suen">
+    <meta name="description" content="Face recognition">
+    <meta name="keywords" content="Face Recognition, Face Detection, Equalization, Contrast Stretching, Histogram Specification">
     <meta name="author" content="Suhendi">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Image Processor</title>
+    <title>Face Recognition</title>
     <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/main.css">
     <link rel="stylesheet" href="css/style.css">
     <link rel="icon" href="../icon.png" type="image/png"/>
     <link rel="shortcut icon" href="../icon.png" type="image/png"/>
@@ -18,10 +19,18 @@
 
     <script type="text/javascript" src="js/classes.js"></script>
     <script type="text/javascript" src="js/image-getter.js"></script>
+    <script type="text/javascript" src="js/utils/util.js"></script>
+    <script type="text/javascript" src="js/utils/density.js"></script>
+    <script type="text/javascript" src="js/utils/sampler.js"></script>
     <script type="text/javascript" src="js/image-recognition.js"></script>
     <script type="text/javascript" src="js/image-channel.js"></script>
     <script type="text/javascript" src="js/image-contrast-stretch.js"></script>
     <script type="text/javascript" src="js/image-convolution.js"></script>
+    <script type="text/javascript" src="js/image-skinmap.js"></script>
+    <script type="text/javascript" src="js/image-skeletonization.js"></script>
+    <script type="text/javascript" src="js/image-facedetect.js"></script>
+    <script type="text/javascript" src="js/image-boundary.js"></script>
+    <script type="text/javascript" src="js/image-skeletonization.js"></script>
     <script type="text/javascript" src="js/canvas-drawer.js"></script>
     <script type="text/javascript" src="js/controls/dirtify.js"></script>
     <script type="text/javascript" src="js/controls/accordion.js"></script>
@@ -32,9 +41,11 @@
 <body>
     <video width=640 height=480 id="video" style="display: none;" controls autoplay></video>
     <div class="container">
-        <h1 class="row d-flex justify-content-center mb-2 mt-2 title">
-            Image Processing and Recognition
-        </h1>
+        <button class="title btn btn-dark col-12 d-flex justify-content-center mb-2 mt-2" onclick="window.location.href='index.html'">
+            <h1>
+                Face Recognition
+            </h1>
+        </button>
         <div class="row d-flex ml-1 mr-1">
             <div class="col-4 mr-1">
                 <div id="snapshot" class="row d-flex mt-1">
@@ -77,6 +88,17 @@
                                         </div>
                                     </div>
                                 </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="control-container col-12 mt-1">
+                        <button class="col-12 btn btn-dark">Recognition</button>
+                        <div class="control-section collapse">
+                            <div class="container accordion">
+                                <button id="button-recog-1" class="col-12 btn btn-dark">Su-Algorithm</button>
+                                <button id="button-recog-2" class="col-12 btn btn-dark">Su-Algorithm</button>
+                                <button id="button-recog-3" class="col-12 btn btn-dark">FF-Algorithm</button>
+                                <button id="button-recog-4" class="col-12 btn btn-dark">FF-Algorithm</button>
                             </div>
                         </div>
                     </div>

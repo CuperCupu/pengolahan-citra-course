@@ -44,44 +44,6 @@
     background-color: white;
 }
 
-.title {
-    background-color: #454b52;
-    color: white;
-    border-radius: 0.5rem;
-    padding: 1rem 2rem 1rem 2rem;
-    text-align: center;
-    margin: 0.5rem 1rem 0.5rem 1rem;
-    font-size: 3rem;
-}
-
-@media (max-aspect-ratio: 2/1) {
-    .title {
-        font-size: 2rem;
-    }
-}
-
-@media (max-aspect-ratio: 1/1) {
-    .title {
-        font-size: 1.5rem;
-    }
-}
-
-@media (max-aspect-ratio: 1/2) {
-    .title {
-        font-size: 1.2rem;
-    }
-}
-
-@media (max-aspect-ratio: 2/3) {
-    .title {
-        font-size: 1rem;
-    }
-}
-
-body {
-    background-color: #b8c0c9;
-}
-
 #recognize-result {
     word-wrap: break-word;
 }
@@ -107,4 +69,8 @@ canvas {
     resize: none;
     margin-bottom: 1rem;
     white-space: nowrap;
+}
+
+img {
+    image-rendering: crisp-edges;
 }

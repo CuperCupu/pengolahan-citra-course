@@ -154,13 +154,13 @@ function findBoundary(img) {
         var result = new ChainCode();
         var x, y, sx, sy = 0;
         var dir = 1;
-        var p = findEndPoints(img);
-        if (p.length > 0) {
-            var pos = p[0];
-            var dir = offsetDir(endPointDirection(pos.x, pos.y, img), 2);
-        } else {
+        // var p = findEndPoints(img);
+        // if (p.length > 0) {
+        //     var pos = p[0];
+        //     var dir = offsetDir(endPointDirection(pos.x, pos.y, img), 2);
+        // } else {
             var pos = findNonEmpty(img);
-        }
+        // }
         var min = {
             x: img.width,
             y: img.height
