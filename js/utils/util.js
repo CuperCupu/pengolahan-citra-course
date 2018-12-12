@@ -184,6 +184,24 @@ util.image = (function() {
     var canvas = document.createElement('canvas');
     var ctx = canvas.getContext('2d');
 
+    var clear = function(img, clearColor = new Color(0, 0, 0, 255)) {
+        for (var i = 0; i < img.data.length; i += 4) {
+            img.data[i] = clearColor.r;
+            img.data[i + 1] = clearColor.g;
+            img.data[i + 2] = clearColor.b;
+            img.data[i + 3] = clearColor.a;
+        }
+        return img;
+    }
+
+    var copy = function(img) {
+        var nimg = ctx.createImageData(img.width, img.height);
+        for (var i in img.data) {
+            nimg.data[i] = img.data[i];
+        }
+        return nimg;
+    }
+
     var over = function(src, dst) {
         var a = src.a / 255;
         var ma = 1 - a;
@@ -212,7 +230,9 @@ util.image = (function() {
         blend: blend,
         blendFunc: {
             over: over
-        }
+        },
+        clear: clear,
+        copy: copy
     }
 })();
 

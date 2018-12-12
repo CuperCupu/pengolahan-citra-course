@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="description" content="Face recognition">
+    <meta name="keywords" content="Face Recognition, Face Detection, Equalization, Contrast Stretching, Histogram Specification">
+    <meta name="author" content="Suhendi">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Face Recognition</title>
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="icon" href="../icon.png" type="image/png"/>
+    <link rel="shortcut icon" href="../icon.png" type="image/png"/>
+    <script src="jslib/jquery-3.3.1.min.js"></script>
+    <script src="jslib/popper.min.js"></script>
+    <script src="jslib/bootstrap.min.js"></script>
+    <script src="jslib/Chart.bundle.min.js"></script>
+    <script src="jslib/exif.js"></script>
+
+    <script type="text/javascript" src="js/classes.js"></script>
+    <script type="text/javascript" src="js/image-getter.js"></script>
+    <script type="text/javascript" src="js/utils/util.js"></script>
+    <script type="text/javascript" src="js/utils/density.js"></script>
+    <script type="text/javascript" src="js/utils/sampler.js"></script>
+    <script type="text/javascript" src="js/image-recognition.js"></script>
+    <script type="text/javascript" src="js/image-channel.js"></script>
+    <script type="text/javascript" src="js/image-contrast-stretch.js"></script>
+    <script type="text/javascript" src="js/image-convolution.js"></script>
+    <script type="text/javascript" src="js/image-skinmap.js"></script>
+    <script type="text/javascript" src="js/image-facedetect.js"></script>
+    <script type="text/javascript" src="js/image-boundary.js"></script>
+    <script type="text/javascript" src="js/image-skeletonization.js"></script>
+    <script type="text/javascript" src="js/canvas-drawer.js"></script>
+    <script type="text/javascript" src="js/controls/dirtify.js"></script>
+    <script type="text/javascript" src="js/controls/accordion.js"></script>
+    <script type="text/javascript" src="js/controls/image-loader.js"></script>
+    <script type="text/javascript" src="js/controls/controlpoints.js"></script>
+    <script type="text/javascript" src="js/controls/convolution.js"></script>
+</head>
+<body>
+    <video width=640 height=480 id="video" style="display: none;" controls autoplay></video>
+    <div class="container">
+        <button class="title btn btn-dark col-12 d-flex justify-content-center mb-2 mt-2" onclick="window.location.href='index.html'">
+            <h1>
+                Face Recognition
+            </h1>
+        </button>
+        <div class="row d-flex ml-1 mr-1">
+            <div class="col-4 mr-1">
+                <div id="snapshot" class="row d-flex mt-1">
+                    <button id="button-webcam-start" class="col btn btn-dark">Start Webcam</button> 
+                    <div id="webcam-control" class="col d-none" style="padding: 0;">
+                        <button class="col btn btn-dark mr-1 mt-1" id="button-webcam-snapshot">Take Snapshot</button> 
+                        <button class="col btn btn-dark mr-1 mt-1" id="button-webcam-stop">Stop Webcam</button> 
+                    </div>
+                </div>
+                <div class="row d-flex mt-1">
+                    <input id="image-file-input" oninput="" type="file" accept="image/*" capture="camera" style="display: none;"/>
+                    <input id="button-file-input" class="col btn btn-dark" type="button" value="Take Picture"/>
+                </div>
+                <div id="controls" class="row collapse accordion">
+                    <div class="control-container col-12 mt-1">
+                        <button class="col-12 btn btn-dark">Control Points</button>
+                        <div class="control-section collapse">
+                            <div class="container accordion">
+                                <button id="button-cp-1" class="col-12 btn btn-dark">Sobel Preprocess</button>
+                                <button id="button-cp-2" class="col-12 btn btn-dark">Negative Hole Preprocess</button>
+                                <button id="button-cp-3" class="col-12 btn btn-dark">Detect Candidates</button>
+                                <button id="button-cp-4" class="col-12 btn btn-dark">Detect Eyes</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="row d-flex justify-content-center align-items-center">
+                    <canvas class="image-box col-lg-5 col-md-8 col-12" id="image_canvas" width="400" height="400"></canvas>
+                    <canvas class="image-box col-lg-5 col-md-8 col-12" id="image_canvas_2" width="400" height="400"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
