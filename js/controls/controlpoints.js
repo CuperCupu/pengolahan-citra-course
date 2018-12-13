@@ -49,7 +49,7 @@ $(document).ready(function() {
         return blobs;
     }
 
-    var getSkinMask = function(img, index = 1) {
+    var getSkinMask = function(img, index = 0) {
         var blobs = getSkinBlobs(img);
         return density.visualizer.visualize(trace(img, blobs[index]).filled, density.visualizer.cm.binary, {
             low: new Color(0, 0, 0, 255),
@@ -799,17 +799,28 @@ $(document).ready(function() {
         var score_e = ((fc - face.eyes.left_tip.x) + (face.eyes.right_tip.x - fc)) / dc;
         score_e = 1 - Math.tanh(Math.abs(score_e - 1));
 
+        // Y position of the eyes.
         var fey = ((face.mouth.left.y + face.mouth.right.y) / 2);
         var cey = ((cp.mouth.left.y + cp.mouth.right.y) / 2);
 
+        // Y position of the mouth.
         var fmy = ((face.eyes.right_tip.y + face.eyes.left_tip.y) / 2);
         var cmy = ((cp.eyes.right_tip.y + cp.eyes.left_tip.y) / 2);
 
-        // Distance from eyes to mouth.
-        var dfm = fey - fmy;
-        var dcm = cey - cmy;
+        // Width of the face.
+        var dfw = face.eyes.right_tip.x - face.eyes.left_tip.x;
+        var dcw = cp.eyes.right_tip.x - cp.eyes.left_tip.x;
 
-        var score_m = Math.abs(1 - Math.abs(dfm - dcm) / dfm);
+        // Height of the face.
+        var dfh = fey - fmy;
+        var dch = cey - cmy;
+        
+        // Score the face ratio.
+
+        var score_m = 1 - Math.abs((dfh / dfw) - (dch / dcw));
+
+        // var score_m = Math.abs(1 - Math.abs(dfh - dch) / dfh);
+
         score_m = 1 - Math.tanh(Math.abs(score_m - 1));
 
         // Position of nose relative to eyes and mouth.
@@ -817,7 +828,7 @@ $(document).ready(function() {
         var fny;
         var cny;
 
-        var score_n = 0.7;
+        var score_n = 0.5;
 
         if ((face.nose.left) && (face.nose.right)) {
             fny = (face.nose.left.y + face.nose.right.y) / 2;
@@ -835,12 +846,13 @@ $(document).ready(function() {
         }
 
         if (cny) {
-            score_n = 1 - Math.abs(((fny - fey) / dfm) - ((cny - cey) / dcm));
+            score_n = 1 - Math.abs(((fny - fey) / dfh) - ((cny - cey) / dch));
             score_n = 1 - Math.tanh(Math.abs(score_n - 1));
         }
 
         var metrics = [score_e, score_m, score_n]
-        var score = metrics.reduce((a, b) => a * b);
+        // var score = metrics.reduce((a, b) => a * b);
+        var score = metrics.reduce((a, b) => a + b) / metrics.length;
         return score;
     }
 
