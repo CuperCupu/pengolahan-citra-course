@@ -345,13 +345,10 @@ density.blobs = (function() {
                         var dy = y + neighbours[i][1];
                         if (map.inBound(dx, dy)) {
                             var d = blobs.getAt(dx, dy);
-                            sum += d;
                             if (d > 0) {
-                                if (d < num) {
-                                    if (num != Number.MAX_VALUE) {
-                                        labelTable[num] = d;
-                                    }
-                                    num = d;
+                                sum += d;
+                                if (labelTable[d] < num) {
+                                    num = labelTable[d];
                                 }
                                 fores.push([dx, dy]);
                             }
@@ -361,12 +358,19 @@ density.blobs = (function() {
                         labelTable[l] = l;
                         blobs.setAt(x, y, l++);
                     } else {
+                        blobs.setAt(x, y, num);
                         for (var i = 0; i < fores.length; i++) {
-                            blobs.setAt(fores[i][0], fores[i][1], num);
+                            var n = blobs.getAt(fores[i][0], fores[i][1]);
+                            // blobs.setAt(fores[i][0], fores[i][1], num);
+                            if ((n > 0) && (n != num)) {
+                                if (labelTable[n] > num) {
+                                    labelTable[n] = num;
+                                } else if (labelTable[n] < num) {
+                                    labelTable[num] = labelTable[n];
+                                }
+                            }
                         }
                     }
-                } else {
-                    blobs.setAt(x, y, 0);
                 }
             }
         }
@@ -384,24 +388,26 @@ density.blobs = (function() {
             }
         } while (diff > 0);
         // Normalize the label.
-        var normal = [];
-        for (var k in labelTable) {
-            var v = parseInt(labelTable[k]);
-            if (normal.indexOf(v) == -1) {
-                normal.push(v);
-            }
-        }
-        normal.sort((a, b) => { return a - b});
-        var maps = {};
-        for (var i = 0; i < normal.length; i++) {
-            maps[normal[i]] = parseInt(i + 1);
-        }
-        for (var k in labelTable) {
-            var d = labelTable[k];
-            labelTable[k] = maps[d];
-        }
+        // var normal = [];
+        // for (var k in labelTable) {
+        //     var v = parseInt(labelTable[k]);
+        //     if (normal.indexOf(v) == -1) {
+        //         normal.push(v);
+        //     }
+        // }
+        // normal.sort((a, b) => { return a - b});
+        // var maps = {};
+        // for (var i = 0; i < normal.length; i++) {
+        //     maps[normal[i]] = parseInt(i + 1);
+        // }
+        // for (var k in labelTable) {
+        //     var d = labelTable[k];
+        //     labelTable[k] = maps[d];
+        // }
+        labelTable[0] = 0;
         blobs.map((e) => {return labelTable[e]});
-        
+        blobs.min = blobs.getMinDensity();
+        blobs.max = blobs.getMaxDensity();
         return blobs;
     }
 
@@ -416,16 +422,12 @@ density.blobs = (function() {
                     if (!(d in objects)) {
                         obj = objects[d] = {
                             clusters: [],
-                            boundary: {
-                                min: {
-                                    x: Number.POSITIVE_INFINITY,
-                                    y: Number.POSITIVE_INFINITY,
-                                },
-                                max: {
-                                    x: Number.NEGATIVE_INFINITY,
-                                    y: Number.NEGATIVE_INFINITY,
-                                }
-                            },
+                            boundary: new Boundary(
+                                Number.POSITIVE_INFINITY,
+                                Number.NEGATIVE_INFINITY,
+                                Number.POSITIVE_INFINITY,
+                                Number.NEGATIVE_INFINITY,
+                            ),
                             center: {
                                 x: 0,
                                 y: 0
@@ -535,16 +537,12 @@ density.blobs = (function() {
     var mergeBlob = function(b1, b2) {
         var b = {
             clusters: [],
-            boundary: {
-                min: {
-                    x: Math.min(b1.boundary.min.x, b2.boundary.min.x),
-                    y: Math.min(b1.boundary.min.y, b2.boundary.min.y),
-                },
-                max: {
-                    x: Math.max(b1.boundary.max.x, b2.boundary.max.x),
-                    y: Math.max(b1.boundary.max.y, b2.boundary.max.y),
-                }
-            },
+            boundary: new Boundary(
+                Math.min(b1.boundary.min.x, b2.boundary.min.x), 
+                Math.max(b1.boundary.max.x, b2.boundary.max.x),
+                Math.min(b1.boundary.min.y, b2.boundary.min.y),
+                Math.max(b1.boundary.max.y, b2.boundary.max.y),
+            ),
             center: {
                 x: (b1.center.x + b2.center.x) / 2,
                 y: (b1.center.y + b2.center.y) / 2

@@ -33,3 +33,39 @@ class Color {
         return new Color(r, g, b, this.a);
     }
 }
+
+class Boundary {
+    constructor(minX, maxX, minY, maxY) {
+        this.min = {
+            x: minX,
+            y: minY
+        }
+        this.max = {
+            x: maxX,
+            y: maxY
+        }
+    }
+
+    inBound(x, y) {
+        return ((x >= this.min.x) && (x <= this.max.x) &&
+            (y >= this.min.y) && (y <= this.max.y));
+    }
+
+    /**
+     * @param {Boundary} other 
+     */
+    isOverlapping(other) {
+        return other.inBound(this.min.x, this.min. y) ||
+            other.inBound(this.min.x, this.max.y) ||
+            other.inBound(this.max.x, this.min.y) ||
+            other.inBound(this.max.x, this.max.y)
+    }
+
+    getWidth() {
+        return this.max.x - this.min.x + 1;
+    }
+
+    getHeight() {
+        return this.max.y - this.min.y + 1;
+    }
+}
