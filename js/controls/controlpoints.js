@@ -49,13 +49,27 @@ $(document).ready(function() {
         return blobs;
     }
 
-    var getSkinMask = function(img) {
+    var getSkinMask = function(img, index = 1) {
         var blobs = getSkinBlobs(img);
-        return density.visualizer.visualize(trace(img, blobs[0]).filled, density.visualizer.cm.binary, {
+        return density.visualizer.visualize(trace(img, blobs[index]).filled, density.visualizer.cm.binary, {
             low: new Color(0, 0, 0, 255),
             high: new Color(255, 255, 255, 255),
             cutoff: 1
         });
+    }
+
+    var getSkinMasks = function(img) {
+        var blobs = getSkinBlobs(img);
+        var results = [];
+        for (var k in blobs) {
+            var blob = trace(img, blobs[k]).filled;
+            results.push(density.visualizer.visualize(blob, density.visualizer.cm.binary, {
+                low: new Color(0, 0, 0, 255),
+                high: new Color(255, 255, 255, 255),
+                cutoff: 1
+            }));
+        }
+        return results;
     }
 
     var preprocess = function(img) {
@@ -95,22 +109,14 @@ $(document).ready(function() {
         return img;
     }
 
-    var negativeHoles = function(img) {
+    var negativeHoles = function(img, skin_mask) {
         img = util.image.copy(img);
-        var skin_blobs = getSkinBlobs(img);
-        var blob = skin_blobs[0];
-        var skin_mask_density = trace(img, blob).filled;
-        var skin_mask = density.visualizer.visualize(skin_mask_density, density.visualizer.cm.binary, {
-            low: new Color(0, 0, 0, 255),
-            high: new Color(255, 255, 255, 255),
-            cutoff: 1
-        });
-
 
         var img = mask(img, skin_mask);
         img = contrastStretch(img, -100, 300, 0, 255);
         img = setBlackWhite(img, 50);
-        
+
+        var skin_mask_density = density.createDensityMap(skin_mask, util.neighbours.identity);
 
         for (var i = 0; i < skin_mask_density.data.length; i++) {
             if (skin_mask_density.data[i] > 0) {
@@ -159,8 +165,7 @@ $(document).ready(function() {
         return thickest;
     }
 
-    var retrieveBlobsDual = function(img, noise_threshold = 5) {
-        var skin_mask = getSkinMask(img);
+    var retrieveBlobsDual = function(img, skin_mask, index = 1, noise_threshold = 5) {
 
         var img_edge = preprocess(img);
         img_edge = process(img_edge, 0.995);
@@ -168,7 +173,7 @@ $(document).ready(function() {
         var blobs_edge = retrieveBlobs(img_edge);
 
         var img_neg = medianFilter(img);
-        img_neg = negativeHoles(img_neg);
+        img_neg = negativeHoles(img_neg, skin_mask);
         var blobs_neg = retrieveBlobs(img_neg);
         // Filter noises.
         blobs_edge = blobs_edge.filter(e => e.counts > noise_threshold);
@@ -551,9 +556,10 @@ $(document).ready(function() {
 
     $('#button-cp-2').click(function() {
         resetPixels();
+        var skin_mask = getSkinMask(image);
         image = medianFilter(image);
 
-        image = negativeHoles(image);
+        image = negativeHoles(image, skin_mask);
 
         var blobs = retrieveBlobs(image);
 
@@ -575,7 +581,8 @@ $(document).ready(function() {
     $('#button-cp-3').click(function() {
         resetPixels();
 
-        var blobs = retrieveBlobsDual(image);
+        var skin_mask = getSkinMask(image);
+        var blobs = retrieveBlobsDual(image, skin_mask);
 
         canvas2.width = image.width;
         canvas2.height = image.height;
@@ -590,7 +597,8 @@ $(document).ready(function() {
     $('#button-cp-4').click(function() {
         resetPixels();
 
-        var blobs = retrieveBlobsDual(image);
+        var skin_mask = getSkinMask(image);
+        var blobs = retrieveBlobsDual(image, skin_mask);
         var candidates = findEyesCandidate(blobs);
         var eyes = selectEyes(candidates);
         if ((eyes.left) && (eyes.right)) {
@@ -611,7 +619,8 @@ $(document).ready(function() {
     $('#button-cp-5').click(function() {
         resetPixels();
 
-        var blobs = retrieveBlobsDual(image);
+        var skin_mask = getSkinMask(image);
+        var blobs = retrieveBlobsDual(image, skin_mask);
         var eyes_candidates = findEyesCandidate(blobs);
         var eyes = selectEyes(eyes_candidates);
 
@@ -642,7 +651,8 @@ $(document).ready(function() {
     $('#button-cp-6').click(function() {
         resetPixels();
 
-        var blobs = retrieveBlobsDual(image);
+        var skin_mask = getSkinMask(image);
+        var blobs = retrieveBlobsDual(image, skin_mask);
         var eyes_candidates = findEyesCandidate(blobs);
         var eyes = selectEyes(eyes_candidates);
 
@@ -671,27 +681,43 @@ $(document).ready(function() {
     $('#button-cp-7').click(function() {
         resetPixels();
 
-        var blobs = retrieveBlobsDual(image);
-        var eyes_candidates = findEyesCandidate(blobs);
-        var eyes = selectEyes(eyes_candidates);
+        var sets = [];
 
-        if ((eyes.left) && (eyes.right)) {
-            var mouth_candidates = findMouthCandidate(blobs, eyes);
-            var mouth = selectMouth(mouth_candidates, eyes);
-            var nose_candidates = findNoseCandidate(blobs, eyes, mouth);
-            var cp = {
-                eyes: extractEyesCP(eyes),
-                mouth: extractMouthCP(mouth),
+        var v = 0;
+        var skin_masks = getSkinMasks(image);
+        for (var k in skin_masks) {
+            var blobs = retrieveBlobsDual(image, skin_masks[k]);
+            var eyes_candidates = findEyesCandidate(blobs);
+            var eyes = selectEyes(eyes_candidates);
+
+
+            if ((eyes.left) && (eyes.right)) {
+                var mouth_candidates = findMouthCandidate(blobs, eyes);
+                var mouth = selectMouth(mouth_candidates, eyes);
+                var nose_candidates = findNoseCandidate(blobs, eyes, mouth);
+                var cp = {
+                    eyes: extractEyesCP(eyes),
+                    mouth: extractMouthCP(mouth),
+                }
+                cp.nose = extractNoseCP(nose_candidates, cp.eyes, cp.mouth);
+
+                sets.push({
+                    eyes: eyes,
+                    mouth: mouth,
+                    cp: cp
+                })
             }
-            cp.nose = extractNoseCP(nose_candidates, cp.eyes, cp.mouth);
-
-            canvas2.width = image.width;
-            canvas2.height = image.height;
-            ctx2.putImageData(image, 0, 0);
-
-            recognize(ctx2, eyes, mouth, cp);
-            setDirty(canvas2);
         }
+
+        canvas2.width = image.width;
+        canvas2.height = image.height;
+        ctx2.putImageData(image, 0, 0);
+
+        for (var k in sets) {
+            recognize(ctx2, sets[k].eyes, sets[k].mouth, sets[k].cp);
+        }
+
+        setDirty(canvas2);
     });
 
     var recognize = function(ctx, eyes, mouth, cp) {
@@ -748,7 +774,6 @@ $(document).ready(function() {
             ctx.strokeText(text, cx, cy);
             ctx.fillText(text, cx, cy);
         }
-
     }
 
     var faces = [
@@ -792,6 +817,8 @@ $(document).ready(function() {
         var fny;
         var cny;
 
+        var score_n = 0.7;
+
         if ((face.nose.left) && (face.nose.right)) {
             fny = (face.nose.left.y + face.nose.right.y) / 2;
         } else {
@@ -801,11 +828,16 @@ $(document).ready(function() {
         if ((cp.nose.left) && (cp.nose.right)) {
             cny = (cp.nose.left.y + cp.nose.right.y) / 2;
         } else {
-            cny = (cp.nose.left || cp.nose.right).y;
+            cny = (cp.nose.left || cp.nose.right);
+            if (cny) {
+                cny = cny.y;
+            }
         }
 
-        var score_n = 1 - Math.abs(((fny - fey) / dfm) - ((cny - cey) / dcm));
-        score_n = 1 - Math.tanh(Math.abs(score_n - 1));
+        if (cny) {
+            score_n = 1 - Math.abs(((fny - fey) / dfm) - ((cny - cey) / dcm));
+            score_n = 1 - Math.tanh(Math.abs(score_n - 1));
+        }
 
         var metrics = [score_e, score_m, score_n]
         var score = metrics.reduce((a, b) => a * b);
