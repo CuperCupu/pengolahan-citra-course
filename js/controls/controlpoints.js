@@ -722,6 +722,94 @@ $(document).ready(function() {
         ctx.stroke();
         ctx.closePath();
 
+        var cx = (b.max.x + b.min.x) / 2;
+        var cy = b.max.y + o.y;
+
+        ctx.fillStyle = "white";
+        ctx.strokeStyle = "black";
+        ctx.textBaseline = "top"; 
+        ctx.textAlign = "center";
+        ctx.lineWidth = 1;
+        ctx.font = "30px arial";
+        var max = null;
+        var max_s = 0;
+        for (var k in faces) {
+            var s = matchFace(faces[k].data, cp);
+            console.log(faces[k].name, s);
+            if (s > max_s) {
+                max = faces[k].name;
+                max_s = s;
+            }
+        }
+
+        if (max != null) {
+            var text = max;
+
+            ctx.strokeText(text, cx, cy);
+            ctx.fillText(text, cx, cy);
+        }
+
+    }
+
+    var faces = [
+        {
+            name: 'Suhendi',
+            data: {"eyes":{"left_tip":{"x":195,"y":99},"left":{"x":212,"y":96.5},"right":{"x":277,"y":100},"right_tip":{"x":296,"y":101}},"mouth":{"left":{"x":211,"y":159},"right":{"x":275,"y":164},"center":{"x":243,"y":156}},"nose":{"left":{"x":234,"y":130.5},"right":{"x":258,"y":131.5}}}
+        },
+        {
+            name: 'Douglas',
+            data: {"eyes":{"left_tip":{"x":124,"y":201},"left":{"x":145,"y":196.5},"right":{"x":226,"y":191.5},"right_tip":{"x":245,"y":193}},"mouth":{"left":{"x":159,"y":280},"right":{"x":229,"y":284},"center":{"x":194,"y":282}},"nose":{"left":{"x":165,"y":250.5},"right":{"x":196,"y":250}}}
+        },
+        {
+            name: "James",
+            data: {"eyes":{"left_tip":{"x":134,"y":137},"left":{"x":152,"y":135},"right":{"x":217,"y":131.5},"right_tip":{"x":237,"y":133}},"mouth":{"left":{"x":156,"y":208},"right":{"x":221,"y":201},"center":{"x":189,"y":202}},"nose":{"left":{"x":175,"y":175.5},"right":null}}
+        }
+    ];
+
+    var matchFace = function(face, cp) {
+        // Distance between eyes.
+        var df = (face.eyes.right_tip.x - face.eyes.left_tip.x);
+        var fc = (face.eyes.left_tip.x + df) / 2;
+        var dc = (cp.eyes.right_tip.x - cp.eyes.left_tip.x);
+        var score_e = ((fc - face.eyes.left_tip.x) + (face.eyes.right_tip.x - fc)) / dc;
+        score_e = 1 - Math.tanh(Math.abs(score_e - 1));
+
+        var fey = ((face.mouth.left.y + face.mouth.right.y) / 2);
+        var cey = ((cp.mouth.left.y + cp.mouth.right.y) / 2);
+
+        var fmy = ((face.eyes.right_tip.y + face.eyes.left_tip.y) / 2);
+        var cmy = ((cp.eyes.right_tip.y + cp.eyes.left_tip.y) / 2);
+
+        // Distance from eyes to mouth.
+        var dfm = fey - fmy;
+        var dcm = cey - cmy;
+
+        var score_m = Math.abs(1 - Math.abs(dfm - dcm) / dfm);
+        score_m = 1 - Math.tanh(Math.abs(score_m - 1));
+
+        // Position of nose relative to eyes and mouth.
+
+        var fny;
+        var cny;
+
+        if ((face.nose.left) && (face.nose.right)) {
+            fny = (face.nose.left.y + face.nose.right.y) / 2;
+        } else {
+            fny = (face.nose.left || face.nose.right).y;
+        }
+
+        if ((cp.nose.left) && (cp.nose.right)) {
+            cny = (cp.nose.left.y + cp.nose.right.y) / 2;
+        } else {
+            cny = (cp.nose.left || cp.nose.right).y;
+        }
+
+        var score_n = 1 - Math.abs(((fny - fey) / dfm) - ((cny - cey) / dcm));
+        score_n = 1 - Math.tanh(Math.abs(score_n - 1));
+
+        var metrics = [score_e, score_m, score_n]
+        var score = metrics.reduce((a, b) => a * b);
+        return score;
     }
 
 });
